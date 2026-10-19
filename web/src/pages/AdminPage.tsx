@@ -88,6 +88,9 @@ export default function AdminPage({
           ログアウト
         </button>
       </div>
+      {import.meta.env.VITE_STATIC === "1" ? (
+        <p className="hint">スコアを記録すると、このページを開いている全員の表に反映されます。</p>
+      ) : null}
       <div className="tabs">
         {(["teams", "games", "settings"] as Tab[]).map((id) => (
           <button key={id} className={tab === id ? "is-on" : ""} type="button" onClick={() => setTab(id)}>

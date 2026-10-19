@@ -23,8 +23,18 @@ export default function App() {
 
   useEffect(() => {
     void reload();
-    const id = window.setInterval(() => void reload(), 8000);
-    return () => window.clearInterval(id);
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "hidden") return;
+      void reload();
+    }, 8000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void reload();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   if (!state && !error) {

@@ -6,6 +6,7 @@ import react from "@vitejs/plugin-react";
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: process.env.VITE_BASE || "/",
   plugins: [react()],
   root: here,
   resolve: {

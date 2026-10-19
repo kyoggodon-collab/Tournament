@@ -1,4 +1,5 @@
 import type { PublicState, Team } from "@shared/types";
+import { remoteApi } from "./remoteStore";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -13,7 +14,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data;
 }
 
-export const api = {
+const httpApi = {
   state: () => request<PublicState>("/api/state"),
   me: () => request<{ admin: boolean }>("/api/me"),
   login: (password: string) =>
@@ -67,3 +68,5 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
 };
+
+export const api: typeof httpApi = import.meta.env.VITE_STATIC === "1" ? remoteApi : httpApi;

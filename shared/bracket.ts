@@ -3,6 +3,7 @@ import type {
   GenerateOptions,
   Match,
   MatchKind,
+  PublicState,
   RefereeSource,
   Source,
   Standings,
@@ -647,6 +648,20 @@ export function standingsOf(tournament: Tournament): Standings {
     fourthId = third.winnerId === third.team1Id ? third.team2Id : third.team1Id;
   }
   return { championId, runnerUpId, thirdId, fourthId };
+}
+
+export function toPublicState(data: Tournament, now = new Date()): PublicState {
+  const resolved = resolveTournament(data);
+  const { adminPasswordHash: _hash, sessionSecret: _secret, ...settings } = resolved.settings;
+  return {
+    settings,
+    teams: resolved.teams,
+    matches: resolved.matches,
+    generatedAt: resolved.generatedAt,
+    standings: standingsOf(resolved),
+    warnings: collectWarnings(resolved),
+    nowSlot: currentSlot(resolved.matches, now),
+  };
 }
 
 export function collectWarnings(tournament: Tournament): string[] {

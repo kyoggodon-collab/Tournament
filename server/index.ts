@@ -7,14 +7,11 @@ import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import {
   applyMatchResult,
-  collectWarnings,
   createTeams,
-  currentSlot,
   defaultSettings,
   BRACKET_VERSION,
   generateMatches,
-  resolveTournament,
-  standingsOf,
+  toPublicState,
 } from "../shared/bracket.js";
 import { SAMPLE_TEAMS } from "../shared/sample.js";
 import type { Match, PublicState, Source, Team, Tournament } from "../shared/types.js";
@@ -121,17 +118,7 @@ function pickSettings(body: Record<string, unknown>): Partial<Tournament["settin
 }
 
 function publicState(data: Tournament): PublicState {
-  const resolved = resolveTournament(data);
-  const { adminPasswordHash: _h, sessionSecret: _s, ...settings } = resolved.settings;
-  return {
-    settings,
-    teams: resolved.teams,
-    matches: resolved.matches,
-    generatedAt: resolved.generatedAt,
-    standings: standingsOf(resolved),
-    warnings: collectWarnings(resolved),
-    nowSlot: currentSlot(resolved.matches),
-  };
+  return toPublicState(data);
 }
 
 function signSession(secret: string, exp: number): string {

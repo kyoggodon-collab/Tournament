@@ -66,6 +66,7 @@ export type Tournament = {
   teams: Team[];
   matches: Match[];
   generatedAt: string | null;
+  updatedAt?: string | null;
 };
 
 export type PublicState = {
