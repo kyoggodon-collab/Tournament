@@ -2,11 +2,11 @@ import type { Match, PublicState } from "@shared/types";
 import { decidedLabel, refereeLabel, teamById, teamName } from "../format";
 import type { TreeNode } from "../tree";
 
-const LEAF = 86;
-const LEVEL = 112;
+const LEAF = 96;
+const LEVEL = 124;
 const PAD_X = 8;
 const PAD_TOP = 42;
-const NAME_H = 210;
+const NAME_H = 230;
 
 type Props = {
   root: TreeNode;
@@ -146,18 +146,20 @@ function LeafTag({
 }) {
   const text = labelOf(leaf.node, state);
   return (
-    <div className={`b-leaf${leaf.faded ? " is-out" : ""}`} style={{ left, top }}>
-      {text.mark ? <i>{text.mark}</i> : null}
-      <strong>{text.name}</strong>
+    <div className={`b-leaf${leaf.faded ? " is-out" : ""}`} style={{ left, top, width: LEAF - 8 }}>
+      {text.mark ? <i className="b-name">{text.mark}</i> : <i className="b-name" />}
+      <strong className="b-name">{text.name}</strong>
       {text.sub ? (
         onLab ? (
-          <button type="button" className="b-lab" onClick={() => onLab(text.sub)}>
+          <button type="button" className="b-lab b-name" onClick={() => onLab(text.sub)}>
             {text.sub}
           </button>
         ) : (
-          <small>{text.sub}</small>
+          <small className="b-name">{text.sub}</small>
         )
-      ) : null}
+      ) : (
+        <small className="b-name" />
+      )}
     </div>
   );
 }
