@@ -129,10 +129,11 @@ function TeamsPanel({
   const [teams, setTeams] = useState<Team[]>(state.teams);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const savedKey = state.teams.map((team) => `${team.id}\t${team.name}\t${team.lab}`).join("\n");
 
   useEffect(() => {
     setTeams(state.teams);
-  }, [state.teams]);
+  }, [savedKey]);
 
   async function run(action: () => Promise<PublicState>, ok: string) {
     setBusy(true);
@@ -341,7 +342,7 @@ function ScoreModal({
     setWinnerId(match.winnerId);
     setStartTime(match.startTime);
     setEndTime(match.endTime);
-  }, [match]);
+  }, [match.id]);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -413,6 +414,7 @@ function ScoreModal({
                 type="button"
                 onClick={() => {
                   if (!match.team1Id) return;
+                  setError(null);
                   void api
                     .result(match.id, {
                       score1: null,
@@ -421,7 +423,8 @@ function ScoreModal({
                       decidedBy: "forfeit",
                     })
                     .then(onChange)
-                    .then(onClose);
+                    .then(onClose)
+                    .catch((err) => setError(err instanceof Error ? err.message : "保存できませんでした"));
                 }}
               >
                 {teamName(state.teams, match.team1Id)}の不戦勝
@@ -430,6 +433,7 @@ function ScoreModal({
                 type="button"
                 onClick={() => {
                   if (!match.team2Id) return;
+                  setError(null);
                   void api
                     .result(match.id, {
                       score1: null,
@@ -438,7 +442,8 @@ function ScoreModal({
                       decidedBy: "forfeit",
                     })
                     .then(onChange)
-                    .then(onClose);
+                    .then(onClose)
+                    .catch((err) => setError(err instanceof Error ? err.message : "保存できませんでした"));
                 }}
               >
                 {teamName(state.teams, match.team2Id)}の不戦勝

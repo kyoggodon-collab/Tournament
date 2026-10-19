@@ -13,7 +13,8 @@ export default function App() {
 
   async function reload() {
     try {
-      setState(await api.state());
+      const next = await api.state();
+      setState((prev) => (prev && JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み込みに失敗しました");
