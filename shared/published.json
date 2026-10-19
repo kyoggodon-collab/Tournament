@@ -1,0 +1,630 @@
+{
+  "settings": {
+    "title": "令和8年度 研究室対抗ソフトボール大会",
+    "date": "2026-10-17",
+    "venueAName": "ソフトボール場（体育館の方）",
+    "venueBName": "多目的広場（芝生）",
+    "openingTime": "09:00",
+    "openingVenue": "A",
+    "closingTime": "16:30",
+    "closingVenue": "A",
+    "adminPasswordHash": "$2b$10$gOKM6FSYE89SXi8DQ53WDubEvWPK9oAFoD32kUaAuECP9B3CzZ38i",
+    "sessionSecret": ""
+  },
+  "teams": [
+    {
+      "id": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "name": "船橋磁",
+      "lab": ""
+    },
+    {
+      "id": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "name": "サエッキーズ",
+      "lab": "佐伯研"
+    },
+    {
+      "id": "410bad9e-bf11-4763-b989-f5c258506542",
+      "name": "Big Rice Boul 2",
+      "lab": "佐々木研"
+    },
+    {
+      "id": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "name": "DOPA CLUB",
+      "lab": "芦沢研"
+    },
+    {
+      "id": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "name": "FUSE",
+      "lab": "布施研"
+    },
+    {
+      "id": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "name": "高橋",
+      "lab": "高橋研"
+    },
+    {
+      "id": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "name": "岩田",
+      "lab": "岩田研"
+    },
+    {
+      "id": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "name": "AIアンツ",
+      "lab": "塚本研"
+    },
+    {
+      "id": "57087883-f359-4f40-ad9f-0b59cddaf924",
+      "name": "芳浩",
+      "lab": "高橋研"
+    },
+    {
+      "id": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "name": "KBYD",
+      "lab": "今池研"
+    }
+  ],
+  "matches": [
+    {
+      "id": "a-0",
+      "venue": "A",
+      "kind": "venue",
+      "group": "A",
+      "roundIndex": 0,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "team",
+        "teamId": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "744a327e-c925-4551-8d3b-ab63b2876e9c"
+      },
+      "team1Id": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "team2Id": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "slot": 1,
+      "code": "②A",
+      "startTime": "10:10",
+      "endTime": "10:50",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "a-2"
+      },
+      "refereeTeamId": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "decidedBy": "score",
+      "loserMark": "ハ"
+    },
+    {
+      "id": "a-1",
+      "venue": "A",
+      "kind": "venue",
+      "group": "A",
+      "roundIndex": 1,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "a-0"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "410bad9e-bf11-4763-b989-f5c258506542"
+      },
+      "team1Id": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "team2Id": "410bad9e-bf11-4763-b989-f5c258506542",
+      "slot": 2,
+      "code": "③A",
+      "startTime": "11:00",
+      "endTime": "11:40",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "a-0"
+      },
+      "refereeTeamId": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "score1": 0,
+      "score2": 2,
+      "winnerId": "410bad9e-bf11-4763-b989-f5c258506542",
+      "decidedBy": "score",
+      "loserMark": "ホ"
+    },
+    {
+      "id": "a-2",
+      "venue": "A",
+      "kind": "venue",
+      "group": "A",
+      "roundIndex": 0,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "team",
+        "teamId": "57c9c280-c49e-4555-99bc-57fb4a554c6a"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "662ee62a-927a-4dbb-a6a1-677bc9c2735c"
+      },
+      "team1Id": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "team2Id": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "slot": 0,
+      "code": "①A",
+      "startTime": "09:20",
+      "endTime": "10:00",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "team",
+        "teamId": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5"
+      },
+      "refereeTeamId": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "decidedBy": "score",
+      "loserMark": "イ"
+    },
+    {
+      "id": "a-3",
+      "venue": "A",
+      "kind": "venue",
+      "group": "A",
+      "roundIndex": 2,
+      "roundLabel": "会場決勝",
+      "source1": {
+        "kind": "winner",
+        "matchId": "a-1"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "a-2"
+      },
+      "team1Id": "410bad9e-bf11-4763-b989-f5c258506542",
+      "team2Id": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "slot": 3,
+      "code": "④A",
+      "startTime": "11:50",
+      "endTime": "12:30",
+      "innings": 5,
+      "timeLimitMin": 40,
+      "lastInningAtMin": 35,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "a-1"
+      },
+      "refereeTeamId": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "410bad9e-bf11-4763-b989-f5c258506542",
+      "decidedBy": "score",
+      "loserMark": "ト"
+    },
+    {
+      "id": "b-4",
+      "venue": "B",
+      "kind": "venue",
+      "group": "B",
+      "roundIndex": 0,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "team",
+        "teamId": "bf53c192-629c-4e33-b928-58b594fd34f7"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "ed8d2704-d1fa-42c8-9cf8-101717625fe0"
+      },
+      "team1Id": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "team2Id": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "slot": 1,
+      "code": "②B",
+      "startTime": "10:10",
+      "endTime": "10:50",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "b-6"
+      },
+      "refereeTeamId": "57087883-f359-4f40-ad9f-0b59cddaf924",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "decidedBy": "score",
+      "loserMark": "ニ"
+    },
+    {
+      "id": "b-5",
+      "venue": "B",
+      "kind": "venue",
+      "group": "B",
+      "roundIndex": 1,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "b-4"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "39e409b8-a313-4ca2-bd19-d56e6852a51c"
+      },
+      "team1Id": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "team2Id": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "slot": 2,
+      "code": "③B",
+      "startTime": "11:00",
+      "endTime": "11:40",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "b-4"
+      },
+      "refereeTeamId": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "decidedBy": "score",
+      "loserMark": "ヘ"
+    },
+    {
+      "id": "b-6",
+      "venue": "B",
+      "kind": "venue",
+      "group": "B",
+      "roundIndex": 0,
+      "roundLabel": "本戦",
+      "source1": {
+        "kind": "team",
+        "teamId": "57087883-f359-4f40-ad9f-0b59cddaf924"
+      },
+      "source2": {
+        "kind": "team",
+        "teamId": "cd4705a2-2070-4804-9f36-61e46e55ce23"
+      },
+      "team1Id": "57087883-f359-4f40-ad9f-0b59cddaf924",
+      "team2Id": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "slot": 0,
+      "code": "①B",
+      "startTime": "09:20",
+      "endTime": "10:00",
+      "innings": 3,
+      "timeLimitMin": 30,
+      "lastInningAtMin": 25,
+      "refereeSource": {
+        "kind": "team",
+        "teamId": "bf53c192-629c-4e33-b928-58b594fd34f7"
+      },
+      "refereeTeamId": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "decidedBy": "score",
+      "loserMark": "ロ"
+    },
+    {
+      "id": "b-7",
+      "venue": "B",
+      "kind": "venue",
+      "group": "B",
+      "roundIndex": 2,
+      "roundLabel": "会場決勝",
+      "source1": {
+        "kind": "winner",
+        "matchId": "b-5"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "b-6"
+      },
+      "team1Id": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "team2Id": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "slot": 3,
+      "code": "④B",
+      "startTime": "11:50",
+      "endTime": "12:30",
+      "innings": 5,
+      "timeLimitMin": 40,
+      "lastInningAtMin": 35,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "b-5"
+      },
+      "refereeTeamId": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "decidedBy": "score",
+      "loserMark": "チ"
+    },
+    {
+      "id": "c-8",
+      "venue": "A",
+      "kind": "consolation",
+      "group": "A",
+      "roundIndex": 0,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "loser",
+        "matchId": "a-2"
+      },
+      "source2": {
+        "kind": "loser",
+        "matchId": "b-6"
+      },
+      "team1Id": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "team2Id": "57087883-f359-4f40-ad9f-0b59cddaf924",
+      "slot": 4,
+      "code": "⑤A",
+      "startTime": "12:40",
+      "endTime": "13:20",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "a-3"
+      },
+      "refereeTeamId": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-9",
+      "venue": "A",
+      "kind": "consolation",
+      "group": "A",
+      "roundIndex": 0,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "loser",
+        "matchId": "a-0"
+      },
+      "source2": {
+        "kind": "loser",
+        "matchId": "b-4"
+      },
+      "team1Id": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "team2Id": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "slot": 5,
+      "code": "⑥A",
+      "startTime": "13:30",
+      "endTime": "14:10",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-8"
+      },
+      "refereeTeamId": "57087883-f359-4f40-ad9f-0b59cddaf924",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-12",
+      "venue": "A",
+      "kind": "consolation",
+      "group": "A",
+      "roundIndex": 1,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "c-8"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "c-9"
+      },
+      "team1Id": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "team2Id": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "slot": 6,
+      "code": "⑦A",
+      "startTime": "14:20",
+      "endTime": "15:00",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-9"
+      },
+      "refereeTeamId": "eca1c963-12fe-4bf6-b688-f7c70f8b08b5",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-10",
+      "venue": "B",
+      "kind": "consolation",
+      "group": "B",
+      "roundIndex": 0,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "loser",
+        "matchId": "a-1"
+      },
+      "source2": {
+        "kind": "loser",
+        "matchId": "b-5"
+      },
+      "team1Id": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "team2Id": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "slot": 4,
+      "code": "⑤B",
+      "startTime": "12:40",
+      "endTime": "13:20",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "b-7"
+      },
+      "refereeTeamId": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-11",
+      "venue": "B",
+      "kind": "consolation",
+      "group": "B",
+      "roundIndex": 0,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "loser",
+        "matchId": "a-3"
+      },
+      "source2": {
+        "kind": "loser",
+        "matchId": "b-7"
+      },
+      "team1Id": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "team2Id": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "slot": 5,
+      "code": "⑥B",
+      "startTime": "13:30",
+      "endTime": "14:10",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-10"
+      },
+      "refereeTeamId": "744a327e-c925-4551-8d3b-ab63b2876e9c",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-13",
+      "venue": "B",
+      "kind": "consolation",
+      "group": "B",
+      "roundIndex": 1,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "c-10"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "c-11"
+      },
+      "team1Id": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "team2Id": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "slot": 6,
+      "code": "⑦B",
+      "startTime": "14:20",
+      "endTime": "15:00",
+      "innings": 3,
+      "timeLimitMin": 25,
+      "lastInningAtMin": 20,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-11"
+      },
+      "refereeTeamId": "cd4705a2-2070-4804-9f36-61e46e55ce23",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "c-14",
+      "venue": "B",
+      "kind": "thirdPlace",
+      "group": "finals",
+      "roundIndex": 2,
+      "roundLabel": "3位決定戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "c-12"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "c-13"
+      },
+      "team1Id": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "team2Id": "39e409b8-a313-4ca2-bd19-d56e6852a51c",
+      "slot": 7,
+      "code": "⑧B",
+      "startTime": "15:10",
+      "endTime": "16:10",
+      "innings": 5,
+      "timeLimitMin": 40,
+      "lastInningAtMin": 35,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-13"
+      },
+      "refereeTeamId": "57c9c280-c49e-4555-99bc-57fb4a554c6a",
+      "score1": 1,
+      "score2": 0,
+      "winnerId": "ed8d2704-d1fa-42c8-9cf8-101717625fe0",
+      "decidedBy": "score",
+      "loserMark": null
+    },
+    {
+      "id": "m-grand-final",
+      "venue": "A",
+      "kind": "grandFinal",
+      "group": "finals",
+      "roundIndex": 100,
+      "roundLabel": "優勝決定戦",
+      "source1": {
+        "kind": "winner",
+        "matchId": "a-3"
+      },
+      "source2": {
+        "kind": "winner",
+        "matchId": "b-7"
+      },
+      "team1Id": "410bad9e-bf11-4763-b989-f5c258506542",
+      "team2Id": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "slot": 7,
+      "code": "⑧A",
+      "startTime": "15:10",
+      "endTime": "16:10",
+      "innings": 7,
+      "timeLimitMin": 60,
+      "lastInningAtMin": 55,
+      "refereeSource": {
+        "kind": "loser",
+        "matchId": "c-12"
+      },
+      "refereeTeamId": "662ee62a-927a-4dbb-a6a1-677bc9c2735c",
+      "score1": 0,
+      "score2": 1,
+      "winnerId": "bf53c192-629c-4e33-b928-58b594fd34f7",
+      "decidedBy": "score",
+      "loserMark": null
+    }
+  ],
+  "generatedAt": "2026-10-19T11:55:17.503Z",
+  "version": 5
+}
