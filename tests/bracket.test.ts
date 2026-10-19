@@ -16,6 +16,31 @@ function matchesInSlot(matches: Match[], slot: number): Match[] {
   return matches.filter((m) => m.slot === slot);
 }
 
+function spanOf(source: Match["source1"], matches: Match[]): number {
+  if (source.kind !== "winner") return 1;
+  const match = matches.find((item) => item.id === source.matchId);
+  if (!match) return 1;
+  return spanOf(match.source1, matches) + spanOf(match.source2, matches);
+}
+
+function heightOf(source: Match["source1"], matches: Match[]): number {
+  if (source.kind !== "winner") return 0;
+  const match = matches.find((item) => item.id === source.matchId);
+  if (!match) return 0;
+  return 1 + Math.max(heightOf(match.source1, matches), heightOf(match.source2, matches));
+}
+
+function assertBalanced(match: Match, matches: Match[], label: string) {
+  const left = heightOf(match.source1, matches);
+  const right = heightOf(match.source2, matches);
+  assert.ok(Math.abs(left - right) <= 1, `${label} ${match.code} height ${left} vs ${right}`);
+  for (const source of [match.source1, match.source2]) {
+    if (source.kind !== "winner") continue;
+    const child = matches.find((item) => item.id === source.matchId);
+    if (child) assertBalanced(child, matches, label);
+  }
+}
+
 describe("generateMatches", () => {
   for (const n of [2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 16, 20]) {
     it(`builds a valid two-venue draw for ${n} teams`, () => {
@@ -95,21 +120,21 @@ describe("generateMatches", () => {
 
     assert.equal(team(code("①A").source1), teams[0].id);
     assert.equal(team(code("①A").source2), teams[1].id);
-    assert.equal(team(code("②A").source1), teams[2].id);
-    assert.equal(team(code("②A").source2), teams[3].id);
-    assert.equal(winnerOf(code("③A").source1), code("②A").id);
-    assert.equal(team(code("③A").source2), teams[4].id);
-    assert.equal(winnerOf(code("④A").source1), code("①A").id);
-    assert.equal(winnerOf(code("④A").source2), code("③A").id);
+    assert.equal(winnerOf(code("③A").source1), code("①A").id);
+    assert.equal(team(code("③A").source2), teams[2].id);
+    assert.equal(team(code("②A").source1), teams[3].id);
+    assert.equal(team(code("②A").source2), teams[4].id);
+    assert.equal(winnerOf(code("④A").source1), code("③A").id);
+    assert.equal(winnerOf(code("④A").source2), code("②A").id);
 
     assert.equal(team(code("①B").source1), teams[5].id);
     assert.equal(team(code("①B").source2), teams[6].id);
-    assert.equal(team(code("②B").source1), teams[7].id);
-    assert.equal(team(code("②B").source2), teams[8].id);
-    assert.equal(winnerOf(code("③B").source1), code("②B").id);
-    assert.equal(team(code("③B").source2), teams[9].id);
-    assert.equal(winnerOf(code("④B").source1), code("①B").id);
-    assert.equal(winnerOf(code("④B").source2), code("③B").id);
+    assert.equal(winnerOf(code("③B").source1), code("①B").id);
+    assert.equal(team(code("③B").source2), teams[7].id);
+    assert.equal(team(code("②B").source1), teams[8].id);
+    assert.equal(team(code("②B").source2), teams[9].id);
+    assert.equal(winnerOf(code("④B").source1), code("③B").id);
+    assert.equal(winnerOf(code("④B").source2), code("②B").id);
 
     assert.equal(winnerOf(code("⑧A").source1), code("④A").id);
     assert.equal(winnerOf(code("⑧A").source2), code("④B").id);
@@ -137,6 +162,25 @@ describe("generateMatches", () => {
       .sort((a, b) => a.slot - b.slot || a.venue.localeCompare(b.venue))
       .map((m) => m.loserMark);
     assert.deepEqual(marks, ["イ", "ロ", "ハ", "ニ", "ホ", "ヘ", "ト", "チ"]);
+  });
+
+  it("keeps both halves within one round of each other", () => {
+    for (const n of [4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16]) {
+      const { matches } = generateMatches(teamsOf(n), { shuffle: false });
+      for (const venue of ["A", "B"] as const) {
+        const games = matches.filter((m) => m.kind === "venue" && m.venue === venue);
+        if (games.length === 0) continue;
+        const root = games.reduce((best, match) => (match.roundIndex > best.roundIndex ? match : best));
+        assertBalanced(root, matches, `${n} teams venue ${venue}`);
+        if (games.length >= 3) {
+          const leftSpan = spanOf(root.source1, matches);
+          const rightSpan = spanOf(root.source2, matches);
+          assert.ok(leftSpan >= 2 && rightSpan >= 2, `${n} ${venue} spans ${leftSpan}/${rightSpan}`);
+        }
+      }
+      const third = matches.find((m) => m.kind === "thirdPlace");
+      if (third) assertBalanced(third, matches, `${n} teams 3rd`);
+    }
   });
 
   it("gives byes without creating extra games", () => {

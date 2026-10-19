@@ -181,7 +181,7 @@ function TeamsPanel({
         </button>
       </div>
       <p className="hint">
-        チームは半分ずつ会場A / 会場Bに固定します。予選中は会場をまたぎません。優勝決定戦だけB会場勝者がAへ、3位決定戦だけA会場準優勝がBへ移動します。
+        チームは半分ずつ会場A / 会場Bに固定します。予選の不戦勝は1回戦に散らし、左右の勝ち上がり回数を揃えます。3位決定戦には本戦で負けた全チームが出場します。
       </p>
       <ol className="team-editor">
         {teams.map((team, index) => (

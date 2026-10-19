@@ -49,13 +49,14 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
         <div className="sheet-pair">
           <section>
             <h2>本戦</h2>
+            <p className="hint">不戦勝は1回戦だけに散らし、左右どちらのブロックも同じ回数だけ勝ち上がります。</p>
             <div className="sheet-scroll">
               <BracketBoard root={main} state={state} crown="優勝" onSelect={onSelect} />
             </div>
           </section>
           <section>
-            <h2>３位決定戦</h2>
-            <p className="hint">本戦で敗れた全チームが出場します。決勝の敗者は準優勝です。</p>
+            <h2>３位決定戦（本戦で負けた{state.matches.filter((match) => match.kind === "venue").length}チーム全員）</h2>
+            <p className="hint">本戦の各試合の敗者が、優勝決定戦を除いて全員出場します。決勝の敗者は準優勝です。</p>
             <div className="sheet-scroll">
               {third ? (
                 <BracketBoard root={third} state={state} crown="３位" onSelect={onSelect} />

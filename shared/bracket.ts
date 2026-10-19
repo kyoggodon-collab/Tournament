@@ -15,7 +15,7 @@ import type {
 const FIRST_SLOT_MINUTES = parseMinutes("09:20");
 const GAP_MINUTES = 10;
 const COMFORTABLE_SLOTS = 8;
-export const BRACKET_VERSION = 2;
+export const BRACKET_VERSION = 3;
 const LOSER_MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
 
 type Built =
@@ -69,28 +69,14 @@ export function splitVenueGroups(teams: Team[]): { A: Team[]; B: Team[] } {
   return { A: teams.slice(0, aCount), B: teams.slice(aCount) };
 }
 
-function buildEntries(entries: Source[], idOf: () => string, venue: Venue): Built | null {
-  if (entries.length === 0) return null;
-  if (entries.length === 1) {
-    return { type: "leaf", source: entries[0], leafStart: 0, leafSpan: 1 };
-  }
-  let left: Source[];
-  let right: Source[];
-  if (entries.length % 2 === 1) {
-    const cut = entries.length === 3 ? 2 : entries.length - 3;
-    left = entries.slice(0, cut);
-    right = entries.slice(cut);
-  } else {
-    const mid = entries.length / 2;
-    left = entries.slice(0, mid);
-    right = entries.slice(mid);
-  }
-  const child1 = buildEntries(left, idOf, venue);
-  const child2 = buildEntries(right, idOf, venue);
-  if (!child1 || !child2) return child1 ?? child2;
+function leafOf(source: Source): Built {
+  return { type: "leaf", source, leafStart: 0, leafSpan: 1 };
+}
+
+function matchOf(child1: Built, child2: Built, id: string, venue: Venue): Built {
   return {
     type: "match",
-    id: idOf(),
+    id,
     venue,
     kind: "venue",
     roundIndex: 0,
@@ -99,6 +85,55 @@ function buildEntries(entries: Source[], idOf: () => string, venue: Venue): Buil
     child1,
     child2,
   };
+}
+
+function firstRound(entries: Source[], plays: number, byes: number, index: { i: number }, idOf: () => string, venue: Venue): Built[] {
+  const total = plays + byes;
+  const playAt = new Set<number>();
+  for (let play = 0; play < plays; play++) playAt.add(Math.floor((play * total) / plays));
+  const nodes: Built[] = [];
+  for (let slot = 0; slot < total; slot++) {
+    if (playAt.has(slot)) {
+      const left = entries[index.i++];
+      const right = entries[index.i++];
+      nodes.push(matchOf(leafOf(left), leafOf(right), idOf(), venue));
+    } else {
+      nodes.push(leafOf(entries[index.i++]));
+    }
+  }
+  return nodes;
+}
+
+function perfect(nodes: Built[], idOf: () => string, venue: Venue): Built {
+  if (nodes.length === 1) return nodes[0];
+  const mid = nodes.length / 2;
+  return matchOf(perfect(nodes.slice(0, mid), idOf, venue), perfect(nodes.slice(mid), idOf, venue), idOf(), venue);
+}
+
+function buildEntries(entries: Source[], idOf: () => string, venue: Venue): Built | null {
+  if (entries.length === 0) return null;
+  if (entries.length === 1) return leafOf(entries[0]);
+  if (entries.length === 2) return matchOf(leafOf(entries[0]), leafOf(entries[1]), idOf(), venue);
+
+  const pairSlots = 1 << (Math.ceil(Math.log2(entries.length)) - 1);
+  const byeSlots = pairSlots * 2 - entries.length;
+  const half = pairSlots / 2;
+  let rightByes = Math.ceil(byeSlots / 2);
+  let leftByes = byeSlots - rightByes;
+  if (leftByes > half) {
+    rightByes += leftByes - half;
+    leftByes = half;
+  }
+  if (rightByes > half) {
+    leftByes += rightByes - half;
+    rightByes = half;
+  }
+  const index = { i: 0 };
+  const advancers = [
+    ...firstRound(entries, half - leftByes, leftByes, index, idOf, venue),
+    ...firstRound(entries, half - rightByes, rightByes, index, idOf, venue),
+  ];
+  return perfect(advancers, idOf, venue);
 }
 
 function measure(node: Built, leafStart: number): number {
