@@ -142,15 +142,15 @@ describe("generateMatches", () => {
 
     assert.equal(loserOf(code("⑤A").source1), code("①A").id);
     assert.equal(loserOf(code("⑤A").source2), code("①B").id);
-    assert.equal(loserOf(code("⑤B").source1), code("②A").id);
-    assert.equal(loserOf(code("⑤B").source2), code("②B").id);
-    assert.equal(loserOf(code("⑥A").source1), code("③A").id);
-    assert.equal(loserOf(code("⑥A").source2), code("③B").id);
+    assert.equal(loserOf(code("⑤B").source1), code("③A").id);
+    assert.equal(loserOf(code("⑤B").source2), code("③B").id);
+    assert.equal(loserOf(code("⑥A").source1), code("②A").id);
+    assert.equal(loserOf(code("⑥A").source2), code("②B").id);
     assert.equal(loserOf(code("⑥B").source1), code("④A").id);
     assert.equal(loserOf(code("⑥B").source2), code("④B").id);
     assert.equal(winnerOf(code("⑦A").source1), code("⑤A").id);
-    assert.equal(winnerOf(code("⑦A").source2), code("⑤B").id);
-    assert.equal(winnerOf(code("⑦B").source1), code("⑥A").id);
+    assert.equal(winnerOf(code("⑦A").source2), code("⑥A").id);
+    assert.equal(winnerOf(code("⑦B").source1), code("⑤B").id);
     assert.equal(winnerOf(code("⑦B").source2), code("⑥B").id);
     assert.equal(winnerOf(code("⑧B").source1), code("⑦A").id);
     assert.equal(winnerOf(code("⑧B").source2), code("⑦B").id);
@@ -225,6 +225,23 @@ describe("generateMatches", () => {
           Math.max(...smallSlots) < Math.min(...largeSlots),
           `${n} ${venue} plays the larger block before the smaller one`,
         );
+      }
+    }
+  });
+
+  it("keeps each 3rd-place half on one court", () => {
+    for (const n of [4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16]) {
+      const { matches } = generateMatches(teamsOf(n), { shuffle: false });
+      for (const match of matches) {
+        if (match.kind !== "consolation") continue;
+        for (const source of [match.source1, match.source2]) {
+          if (source.kind !== "winner") continue;
+          const feeder = matches.find((item) => item.id === source.matchId);
+          assert.ok(feeder, `${n} teams missing a feeder for ${match.code}`);
+          if (!feeder || feeder.kind !== "consolation") continue;
+          assert.equal(feeder.venue, match.venue, `${n} ${match.code} leaves ${feeder.code}'s court`);
+          assert.ok(feeder.slot < match.slot, `${n} ${feeder.code} is scheduled after ${match.code}`);
+        }
       }
     }
   });

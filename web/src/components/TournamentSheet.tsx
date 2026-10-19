@@ -63,7 +63,9 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
           </section>
           <section>
             <h2>３位決定戦（本戦で負けた{state.matches.filter((match) => match.kind === "venue").length}チーム全員）</h2>
-            <p className="hint">本戦の各試合の敗者が、優勝決定戦を除いて全員出場します。決勝の敗者は準優勝です。</p>
+            <p className="hint">
+              本戦の各試合の敗者が、優勝決定戦を除いて全員出場します。決勝の敗者は準優勝です。左の山は会場A、右の山は会場Bで通すので、準決勝までの勝ち上がりはコートを移動しません。
+            </p>
             <div className="sheet-scroll">
               {third ? (
                 <BracketBoard root={third} state={state} crown="３位" onSelect={onSelect} onLab={setLab} />

@@ -15,7 +15,7 @@ import type {
 const FIRST_SLOT_MINUTES = parseMinutes("09:20");
 const GAP_MINUTES = 10;
 const COMFORTABLE_SLOTS = 8;
-export const BRACKET_VERSION = 4;
+export const BRACKET_VERSION = 5;
 const LOSER_MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
 
 type Built =
@@ -187,6 +187,18 @@ function toDraft(node: Built & { type: "match" }, label: string): DraftMatch {
 
 function byRound(matches: DraftMatch[]): DraftMatch[] {
   return [...matches].sort((a, b) => a.roundIndex - b.roundIndex || a.leafStart - b.leafStart);
+}
+
+function consolationHalf(node: Built | null, drafts: DraftMatch[]): DraftMatch[] {
+  const ids = new Set<string>();
+  const walk = (current: Built | null) => {
+    if (!current || current.type === "leaf") return;
+    ids.add(current.id);
+    walk(current.child1);
+    walk(current.child2);
+  };
+  walk(node);
+  return byRound(drafts.filter((draft) => ids.has(draft.id) && draft.kind === "consolation"));
 }
 
 function subtreeSize(node: Built): number {
@@ -364,14 +376,24 @@ export function generateMatches(
     }
   }
   const cDrafts = cMatches.map((n) => toDraft(n, n.kind === "thirdPlace" ? "3位決定戦" : "3位決定戦"));
-  const cPrelims = byRound(cDrafts.filter((m) => m.kind === "consolation"));
-  cPrelims.forEach((match, index) => {
-    match.venue = index % 2 === 0 ? "A" : "B";
-    match.group = "consolation";
-    slotOf.set(match.id, prelimSlots + Math.floor(index / 2));
-  });
+  const consolationSide = consolationRoot?.type === "match" ? consolationRoot : null;
+  const leftHalf = consolationHalf(consolationSide?.child1 ?? null, cDrafts);
+  const rightHalf = consolationHalf(consolationSide?.child2 ?? null, cDrafts);
+  const halfRows = Math.max(leftHalf.length, rightHalf.length);
+  for (let index = 0; index < halfRows; index++) {
+    const row: [DraftMatch | undefined, Venue][] = [
+      [leftHalf[index], "A"],
+      [rightHalf[index], "B"],
+    ];
+    for (const [match, venue] of row) {
+      if (!match) continue;
+      match.venue = venue;
+      match.group = "consolation";
+      slotOf.set(match.id, prelimSlots + index);
+    }
+  }
   const third = cDrafts.find((m) => m.kind === "thirdPlace");
-  const finalSlot = prelimSlots + Math.ceil(cPrelims.length / 2);
+  const finalSlot = prelimSlots + halfRows;
 
   const drafts: DraftMatch[] = [...aDrafts, ...bDrafts, ...cDrafts];
   const champA = championSource(sideA);
