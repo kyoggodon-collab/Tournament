@@ -324,6 +324,9 @@ if (fs.existsSync(DIST_DIR)) {
 const port = Number(process.env.PORT || 3000);
 const server = app.listen(port, "0.0.0.0", () => {
   console.log(`softball tournament listening on http://0.0.0.0:${port}`);
+  console.log(`閲覧: http://localhost:${port}/`);
+  console.log(`ルール: http://localhost:${port}/rules`);
+  console.log(`運営: http://localhost:${port}/admin`);
 });
 
 server.on("error", (error) => {

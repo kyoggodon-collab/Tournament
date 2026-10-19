@@ -11,7 +11,7 @@ npm run build
 npm start
 ```
 
-開発時（API `3001` + Vite `5173`）:
+開発時（API `http://localhost:3001` + 画面 `http://localhost:5173`）:
 
 ```bash
 npm run dev
@@ -19,11 +19,21 @@ npm run dev
 
 ブラウザで開く URL:
 
+本番 (`npm start`、ポート 3000)
+
 | 役割 | URL | できること |
 | --- | --- | --- |
-| 閲覧者 | `/` | 試合時刻、会場、スコア、勝ち上がり、順位 |
-| ルール | `/rules` | 大会注意事項 |
-| 運営 | `/admin` | 共通パスワード後にチーム編集・生成・スコア記録 |
+| 閲覧者 | http://localhost:3000/ | 試合時刻、会場、スコア、勝ち上がり、順位 |
+| ルール | http://localhost:3000/rules | 大会注意事項 |
+| 運営 | http://localhost:3000/admin | 共通パスワード後にチーム編集・生成・スコア記録 |
+
+開発 (`npm run dev`、ポート 5173)
+
+| 役割 | URL |
+| --- | --- |
+| 閲覧者 | http://localhost:5173/ |
+| ルール | http://localhost:5173/rules |
+| 運営 | http://localhost:5173/admin |
 
 初期パスワードは `r8softball` です。運営画面の設定タブで変更できます。環境変数 `ADMIN_PASSWORD` は初回起動時の初期値に使います。
 
