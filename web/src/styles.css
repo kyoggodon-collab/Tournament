@@ -248,9 +248,9 @@ button.b-tag-hit {
   cursor: pointer;
 }
 .lab-backdrop { z-index: 60; }
-.lab-sheet { width: min(920px, 100%); }
+.lab-sheet { width: min(1080px, 100%); }
 .lab-table { font-size: 14px; }
-.lab-table th, .lab-table td { white-space: nowrap; }
+.lab-table td:nth-child(6) { white-space: normal; min-width: 8em; }
 .lab-table small { display: block; color: var(--muted); font-size: 11px; }
 .lab-table tr.is-win-row td:last-child { font-weight: 800; }
 

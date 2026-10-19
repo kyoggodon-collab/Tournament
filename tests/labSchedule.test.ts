@@ -54,6 +54,24 @@ describe("rowsForLab", () => {
     assert.equal(row.opponent, "チーム2");
   });
 
+  it("lists both teams when the lab plays itself", () => {
+    const state = stateOf(4);
+    const match = state.matches.find((item) => item.team1Id === state.teams[0].id)!;
+    match.team2Id = state.teams[2].id;
+    match.score1 = 1;
+    match.score2 = 0;
+    match.winnerId = state.teams[0].id;
+    match.decidedBy = "score";
+    const rows = rowsForLab(state, "高橋研").filter((row) => row.code === match.code && row.role === "試合");
+    assert.deepEqual(
+      rows.map((row) => [row.teamName, row.points, row.result]),
+      [
+        ["チーム1", "1–0", "勝ち"],
+        ["チーム3", "0–1", "負け"],
+      ],
+    );
+  });
+
   it("adds a referee row without treating it as a played game", () => {
     const state = stateOf(4);
     const match = state.matches.find((item) => item.venue === "B" && item.kind === "venue")!;

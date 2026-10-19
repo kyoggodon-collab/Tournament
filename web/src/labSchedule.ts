@@ -23,26 +23,8 @@ export function rowsForLab(state: PublicState, lab: string): LabRow[] {
   for (const match of state.matches) {
     const onSide1 = Boolean(match.team1Id && ids.has(match.team1Id));
     const onSide2 = Boolean(match.team2Id && ids.has(match.team2Id));
-    if (onSide1 || onSide2) {
-      const ours = (onSide1 ? match.team1Id : match.team2Id) as string;
-      const opponentId = onSide1 ? match.team2Id : match.team1Id;
-      const ourScore = onSide1 ? match.score1 : match.score2;
-      const theirScore = onSide1 ? match.score2 : match.score1;
-      rows.push({
-        key: `${match.id}:play`,
-        slot: match.slot,
-        startTime: match.startTime,
-        endTime: match.endTime,
-        venue: match.venue,
-        code: match.code,
-        roundLabel: match.roundLabel,
-        role: "試合",
-        teamName: teamName(state.teams, ours),
-        opponent: opponentId ? teamName(state.teams, opponentId) : "未定",
-        points: ourScore !== null && theirScore !== null ? `${ourScore}–${theirScore}` : "",
-        result: playResult(match, ours),
-      });
-    }
+    if (onSide1) rows.push(playRow(state, match, 1));
+    if (onSide2) rows.push(playRow(state, match, 2));
     if (match.refereeTeamId && ids.has(match.refereeTeamId)) {
       const playing = match.refereeTeamId === match.team1Id || match.refereeTeamId === match.team2Id;
       if (!playing) {
@@ -70,6 +52,27 @@ export function rowsForLab(state: PublicState, lab: string): LabRow[] {
       a.code.localeCompare(b.code, "ja") ||
       a.role.localeCompare(b.role, "ja"),
   );
+}
+
+function playRow(state: PublicState, match: Match, side: 1 | 2): LabRow {
+  const ours = (side === 1 ? match.team1Id : match.team2Id) as string;
+  const opponentId = side === 1 ? match.team2Id : match.team1Id;
+  const ourScore = side === 1 ? match.score1 : match.score2;
+  const theirScore = side === 1 ? match.score2 : match.score1;
+  return {
+    key: `${match.id}:play:${side}`,
+    slot: match.slot,
+    startTime: match.startTime,
+    endTime: match.endTime,
+    venue: match.venue,
+    code: match.code,
+    roundLabel: match.roundLabel,
+    role: "試合",
+    teamName: teamName(state.teams, ours),
+    opponent: opponentId ? teamName(state.teams, opponentId) : "未定",
+    points: ourScore !== null && theirScore !== null ? `${ourScore}–${theirScore}` : "",
+    result: playResult(match, ours),
+  };
 }
 
 function playResult(match: Match, teamId: string): string {
