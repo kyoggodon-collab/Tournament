@@ -40,7 +40,6 @@ export default function LabScheduleDialog({ state, lab, onClose }: Props) {
                   <th>時刻</th>
                   <th>会場</th>
                   <th>試合</th>
-                  <th>役割</th>
                   <th>チーム</th>
                   <th>相手</th>
                   <th>得点</th>
@@ -56,9 +55,8 @@ export default function LabScheduleDialog({ state, lab, onClose }: Props) {
                     <td>{row.venue}会場</td>
                     <td>
                       {row.code}
-                      <small>{row.roundLabel}</small>
+                      <small>{row.role === "審判" ? `${row.roundLabel}・審判` : row.roundLabel}</small>
                     </td>
-                    <td>{row.role}</td>
                     <td>{row.teamName}</td>
                     <td>{row.opponent}</td>
                     <td>{row.points || "—"}</td>
