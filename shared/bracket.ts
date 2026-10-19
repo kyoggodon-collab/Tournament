@@ -558,7 +558,7 @@ export function applyMatchResult(
     decidedBy: Match["decidedBy"];
   },
 ): Tournament {
-  const matches = tournament.matches.map((m) => ({ ...m }));
+  const matches = resolveTournament(tournament).matches.map((m) => ({ ...m }));
   const target = matches.find((m) => m.id === matchId);
   if (!target) throw new Error("試合が見つかりません");
 

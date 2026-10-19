@@ -95,6 +95,40 @@ describe("applyMatchResult", () => {
     assert.equal(resolveSourceTeamId(grand.source1, t.matches), aFinal.team2Id);
   });
 
+  it("records the 3rd-place final when derived team ids were not stored", () => {
+    let t = setup(10);
+    for (let guard = 0; guard < 40; guard++) {
+      const next = t.matches
+        .filter((m) => m.kind !== "thirdPlace" && !m.winnerId && m.team1Id && m.team2Id)
+        .sort((a, b) => a.slot - b.slot)[0];
+      if (!next) break;
+      t = applyMatchResult(t, next.id, {
+        score1: 2,
+        score2: 0,
+        winnerId: null,
+        decidedBy: "score",
+      });
+    }
+    const third = t.matches.find((m) => m.kind === "thirdPlace")!;
+    const expectedWinner = third.team1Id;
+    assert.ok(expectedWinner && third.team2Id);
+    for (const match of t.matches) {
+      if (match.source1.kind !== "team") match.team1Id = null;
+      if (match.source2.kind !== "team") match.team2Id = null;
+    }
+    t = applyMatchResult(t, third.id, {
+      score1: 3,
+      score2: 1,
+      winnerId: null,
+      decidedBy: "score",
+    });
+    const saved = t.matches.find((m) => m.id === third.id)!;
+    assert.equal(saved.score1, 3);
+    assert.equal(saved.score2, 1);
+    assert.equal(saved.winnerId, expectedWinner);
+    assert.equal(saved.decidedBy, "score");
+  });
+
   it("rejects a tie without a janken winner", () => {
     const t = setup(4);
     const aFinal = t.matches.find((m) => m.kind === "venue" && m.venue === "A")!;
