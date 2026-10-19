@@ -10,7 +10,7 @@
     "dev:web": "vite --config web/vite.config.ts --host 0.0.0.0",
     "build": "vite build --config web/vite.config.ts",
     "start": "node --import tsx server/index.ts",
-    "test": "tsx --test tests/bracket.test.ts tests/resolve.test.ts"
+    "test": "tsx --test tests/bracket.test.ts tests/resolve.test.ts tests/labSchedule.test.ts"
   },
   "engines": {
     "node": ">=20"

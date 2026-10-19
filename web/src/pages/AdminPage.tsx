@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import type { Match, PublicState, Team } from "@shared/types";
 import { api } from "../api";
 import BracketView from "../components/BracketView";
+import LabScheduleDialog from "../components/LabScheduleDialog";
 import MatchCard from "../components/MatchCard";
 import { teamName } from "../format";
 
@@ -327,6 +328,7 @@ function ScoreModal({
   onClose: () => void;
   onChange: (state: PublicState) => void;
 }) {
+  const [lab, setLab] = useState<string | null>(null);
   const [score1, setScore1] = useState(match.score1 ?? 0);
   const [score2, setScore2] = useState(match.score2 ?? 0);
   const [winnerId, setWinnerId] = useState(match.winnerId);
@@ -345,6 +347,7 @@ function ScoreModal({
   }, [match.id]);
 
   return (
+    <>
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <header>
@@ -355,7 +358,7 @@ function ScoreModal({
             閉じる
           </button>
         </header>
-        <MatchCard match={match} state={state} />
+        <MatchCard match={match} state={state} onLab={setLab} />
         {!ready ? (
           <p className="hint">対戦チームが決まるまでスコアは記録できません。</p>
         ) : (
@@ -489,5 +492,7 @@ function ScoreModal({
         {error ? <p className="error">{error}</p> : null}
       </div>
     </div>
+    {lab ? <LabScheduleDialog state={state} lab={lab} onClose={() => setLab(null)} /> : null}
+    </>
   );
 }

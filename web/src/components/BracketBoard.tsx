@@ -13,13 +13,14 @@ type Props = {
   state: PublicState;
   crown: string;
   onSelect?: (match: Match) => void;
+  onLab?: (lab: string) => void;
 };
 
 type LeafSpot = { node: TreeNode; x: number; faded: boolean };
 type MatchSpot = { node: Extract<TreeNode, { kind: "match" }>; x: number; depth: number };
 type Line = { x1: number; y1: number; x2: number; y2: number; live: boolean; faded: boolean };
 
-export default function BracketBoard({ root, state, crown, onSelect }: Props) {
+export default function BracketBoard({ root, state, crown, onSelect, onLab }: Props) {
   const draw = layout(root);
   const width = draw.leafCount * LEAF + PAD_X * 2;
   const lineH = PAD_TOP + (draw.baseline + 1) * LEVEL;
@@ -56,6 +57,7 @@ export default function BracketBoard({ root, state, crown, onSelect }: Props) {
           left={X(spot.x)}
           top={Y(spot.depth)}
           onSelect={onSelect}
+          onLab={onLab}
         />
       ))}
       {draw.leaves.map((leaf) => (
@@ -65,6 +67,7 @@ export default function BracketBoard({ root, state, crown, onSelect }: Props) {
           state={state}
           left={X(leaf.x)}
           top={Y(draw.baseline)}
+          onLab={onLab}
         />
       ))}
     </div>
@@ -77,18 +80,21 @@ function MatchTag({
   left,
   top,
   onSelect,
+  onLab,
 }: {
   spot: MatchSpot;
   state: PublicState;
   left: number;
   top: number;
   onSelect?: (match: Match) => void;
+  onLab?: (lab: string) => void;
 }) {
   const match = spot.node.match;
   const winner = teamById(state.teams, match.winnerId);
   const score =
     match.score1 !== null && match.score2 !== null ? `${match.score1}-${match.score2}` : "";
   const note = decidedLabel(match);
+  const refLab = refereeLab(match, state);
   const body = (
     <>
       <b className="b-code">
@@ -100,20 +106,28 @@ function MatchTag({
       <small className="b-time">
         {match.startTime}-{match.endTime}
       </small>
-      <em className="b-ref">審 {shortReferee(match, state)}</em>
     </>
   );
-  if (!onSelect) {
-    return (
-      <div className="b-tag" style={{ left, top }}>
-        {body}
-      </div>
-    );
-  }
   return (
-    <button type="button" className="b-tag" style={{ left, top }} onClick={() => onSelect(match)}>
-      {body}
-    </button>
+    <div className="b-tag" style={{ left, top }}>
+      {onSelect ? (
+        <button type="button" className="b-tag-hit" onClick={() => onSelect(match)}>
+          {body}
+        </button>
+      ) : (
+        body
+      )}
+      <em className="b-ref">
+        審{" "}
+        {refLab && onLab ? (
+          <button type="button" className="b-lab b-lab-ref" onClick={() => onLab(refLab)}>
+            {shortReferee(match, state)}
+          </button>
+        ) : (
+          shortReferee(match, state)
+        )}
+      </em>
+    </div>
   );
 }
 
@@ -122,20 +136,36 @@ function LeafTag({
   state,
   left,
   top,
+  onLab,
 }: {
   leaf: LeafSpot;
   state: PublicState;
   left: number;
   top: number;
+  onLab?: (lab: string) => void;
 }) {
   const text = labelOf(leaf.node, state);
   return (
     <div className={`b-leaf${leaf.faded ? " is-out" : ""}`} style={{ left, top }}>
       {text.mark ? <i>{text.mark}</i> : null}
       <strong>{text.name}</strong>
-      {text.sub ? <small>{text.sub}</small> : null}
+      {text.sub ? (
+        onLab ? (
+          <button type="button" className="b-lab" onClick={() => onLab(text.sub)}>
+            {text.sub}
+          </button>
+        ) : (
+          <small>{text.sub}</small>
+        )
+      ) : null}
     </div>
   );
+}
+
+function refereeLab(match: Match, state: PublicState): string {
+  if (match.refereeTeamId) return teamById(state.teams, match.refereeTeamId)?.lab ?? "";
+  if (match.refereeSource.kind === "team") return teamById(state.teams, match.refereeSource.teamId)?.lab ?? "";
+  return "";
 }
 
 function shortReferee(match: Match, state: PublicState): string {

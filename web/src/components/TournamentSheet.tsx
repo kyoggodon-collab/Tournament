@@ -1,7 +1,9 @@
+import { useState } from "react";
 import type { Match, PublicState } from "@shared/types";
 import { formatDate, teamName } from "../format";
 import { championshipTree, thirdPlaceTree, uniqueSlots } from "../tree";
 import BracketBoard from "./BracketBoard";
+import LabScheduleDialog from "./LabScheduleDialog";
 
 type Props = {
   state: PublicState;
@@ -10,6 +12,7 @@ type Props = {
 };
 
 export default function TournamentSheet({ state, onSelect, editable }: Props) {
+  const [lab, setLab] = useState<string | null>(null);
   const main = championshipTree(state.matches);
   const third = thirdPlaceTree(state.matches);
   const slots = uniqueSlots(state.matches);
@@ -30,6 +33,7 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
         <b>B会場</b>：{state.settings.venueBName}
         <span className="legend-advance">赤い線は勝ち上がったチーム</span>
         <span className="legend-ref">小さい「審」は審判</span>
+        <span>研究室名を押すと、その研究室の時刻と得点</span>
       </p>
 
       {live.length > 0 ? (
@@ -54,7 +58,7 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
               各コートは小さい山から始め、次の相手が決まっているあいだは連戦です。不戦勝は1回戦だけに散らします。
             </p>
             <div className="sheet-scroll">
-              <BracketBoard root={main} state={state} crown="優勝" onSelect={onSelect} />
+              <BracketBoard root={main} state={state} crown="優勝" onSelect={onSelect} onLab={setLab} />
             </div>
           </section>
           <section>
@@ -62,7 +66,7 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
             <p className="hint">本戦の各試合の敗者が、優勝決定戦を除いて全員出場します。決勝の敗者は準優勝です。</p>
             <div className="sheet-scroll">
               {third ? (
-                <BracketBoard root={third} state={state} crown="３位" onSelect={onSelect} />
+                <BracketBoard root={third} state={state} crown="３位" onSelect={onSelect} onLab={setLab} />
               ) : (
                 <p className="sheet-empty">敗退チームが2つ以上になると3位決定戦を組みます。</p>
               )}
@@ -95,6 +99,7 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
           </tr>
         </tbody>
       </table>
+      {lab ? <LabScheduleDialog state={state} lab={lab} onClose={() => setLab(null)} /> : null}
     </article>
   );
 }

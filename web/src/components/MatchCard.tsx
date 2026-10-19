@@ -13,9 +13,10 @@ type Props = {
   state: PublicState;
   current?: boolean;
   onSelect?: (match: Match) => void;
+  onLab?: (lab: string) => void;
 };
 
-export default function MatchCard({ match, state, current, onSelect }: Props) {
+export default function MatchCard({ match, state, current, onSelect, onLab }: Props) {
   const status = matchStatus(match);
   const t1 = teamById(state.teams, match.team1Id);
   const t2 = teamById(state.teams, match.team2Id);
@@ -49,6 +50,7 @@ export default function MatchCard({ match, state, current, onSelect }: Props) {
           score={match.score1}
           winner={Boolean(match.winnerId && match.winnerId === match.team1Id)}
           lost={Boolean(match.winnerId && match.team1Id && match.winnerId !== match.team1Id)}
+          onLab={onLab}
         />
         <div className="vs">VS</div>
         <Side
@@ -57,6 +59,7 @@ export default function MatchCard({ match, state, current, onSelect }: Props) {
           score={match.score2}
           winner={Boolean(match.winnerId && match.winnerId === match.team2Id)}
           lost={Boolean(match.winnerId && match.team2Id && match.winnerId !== match.team2Id)}
+          onLab={onLab}
         />
       </div>
       <footer>
@@ -74,17 +77,34 @@ function Side({
   score,
   winner,
   lost,
+  onLab,
 }: {
   name: string;
   lab: string;
   score: number | null;
   winner: boolean;
   lost: boolean;
+  onLab?: (lab: string) => void;
 }) {
   return (
     <div className={`side${winner ? " is-win" : lost ? " is-loss" : ""}`}>
       <strong>{name}</strong>
-      {lab ? <small>{lab}</small> : <small>&nbsp;</small>}
+      {lab && onLab ? (
+        <button
+          type="button"
+          className="b-lab"
+          onClick={(event) => {
+            event.stopPropagation();
+            onLab(lab);
+          }}
+        >
+          {lab}
+        </button>
+      ) : lab ? (
+        <small>{lab}</small>
+      ) : (
+        <small>&nbsp;</small>
+      )}
       <em>{score === null ? "–" : score}</em>
     </div>
   );
