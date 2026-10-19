@@ -118,23 +118,23 @@ describe("generateMatches", () => {
       return source.matchId;
     };
 
-    assert.equal(team(code("①A").source1), teams[0].id);
-    assert.equal(team(code("①A").source2), teams[1].id);
-    assert.equal(winnerOf(code("③A").source1), code("①A").id);
+    assert.equal(team(code("①A").source1), teams[3].id);
+    assert.equal(team(code("①A").source2), teams[4].id);
+    assert.equal(team(code("②A").source1), teams[0].id);
+    assert.equal(team(code("②A").source2), teams[1].id);
+    assert.equal(winnerOf(code("③A").source1), code("②A").id);
     assert.equal(team(code("③A").source2), teams[2].id);
-    assert.equal(team(code("②A").source1), teams[3].id);
-    assert.equal(team(code("②A").source2), teams[4].id);
     assert.equal(winnerOf(code("④A").source1), code("③A").id);
-    assert.equal(winnerOf(code("④A").source2), code("②A").id);
+    assert.equal(winnerOf(code("④A").source2), code("①A").id);
 
-    assert.equal(team(code("①B").source1), teams[5].id);
-    assert.equal(team(code("①B").source2), teams[6].id);
-    assert.equal(winnerOf(code("③B").source1), code("①B").id);
+    assert.equal(team(code("①B").source1), teams[8].id);
+    assert.equal(team(code("①B").source2), teams[9].id);
+    assert.equal(team(code("②B").source1), teams[5].id);
+    assert.equal(team(code("②B").source2), teams[6].id);
+    assert.equal(winnerOf(code("③B").source1), code("②B").id);
     assert.equal(team(code("③B").source2), teams[7].id);
-    assert.equal(team(code("②B").source1), teams[8].id);
-    assert.equal(team(code("②B").source2), teams[9].id);
     assert.equal(winnerOf(code("④B").source1), code("③B").id);
-    assert.equal(winnerOf(code("④B").source2), code("②B").id);
+    assert.equal(winnerOf(code("④B").source2), code("①B").id);
 
     assert.equal(winnerOf(code("⑧A").source1), code("④A").id);
     assert.equal(winnerOf(code("⑧A").source2), code("④B").id);
@@ -190,6 +190,43 @@ describe("generateMatches", () => {
     assert.equal(groups.B.length, 3);
     assert.equal(matches.filter((m) => m.kind === "venue" && m.venue === "A").length, 3);
     assert.equal(matches.filter((m) => m.kind === "venue" && m.venue === "B").length, 2);
+  });
+
+  it("plays the smaller block first and continues while the opponent is decided", () => {
+    for (const n of [5, 6, 7, 8, 10, 12, 16]) {
+      const { matches } = generateMatches(teamsOf(n), { shuffle: false });
+      for (const venue of ["A", "B"] as const) {
+        const games = matches.filter((m) => m.kind === "venue" && m.venue === venue);
+        for (const match of games) {
+          const deps = [match.source1, match.source2]
+            .filter((source) => source.kind === "winner")
+            .map((source) => matches.find((item) => item.id === (source.kind === "winner" ? source.matchId : "")))
+            .filter((item): item is Match => Boolean(item));
+          if (deps.length === 0) continue;
+          const latest = Math.max(...deps.map((item) => item.slot));
+          assert.equal(match.slot, latest + 1, `${n} ${match.code} breaks a consecutive run`);
+        }
+        if (games.length < 3) continue;
+        const root = games.reduce((best, match) => (match.roundIndex > best.roundIndex ? match : best));
+        const leftSpan = spanOf(root.source1, matches);
+        const rightSpan = spanOf(root.source2, matches);
+        if (leftSpan === rightSpan) continue;
+        const smaller = leftSpan < rightSpan ? root.source1 : root.source2;
+        const larger = smaller === root.source1 ? root.source2 : root.source1;
+        const slotsIn = (source: Match["source1"]): number[] => {
+          if (source.kind !== "winner") return [];
+          const child = matches.find((item) => item.id === source.matchId);
+          if (!child) return [];
+          return [child.slot, ...slotsIn(child.source1), ...slotsIn(child.source2)];
+        };
+        const smallSlots = slotsIn(smaller);
+        const largeSlots = slotsIn(larger);
+        assert.ok(
+          Math.max(...smallSlots) < Math.min(...largeSlots),
+          `${n} ${venue} plays the larger block before the smaller one`,
+        );
+      }
+    }
   });
 
   it("does not ask a team to referee a match in the same slot they play", () => {

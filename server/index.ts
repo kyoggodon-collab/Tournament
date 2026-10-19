@@ -17,7 +17,7 @@ import {
   standingsOf,
 } from "../shared/bracket.js";
 import { SAMPLE_TEAMS } from "../shared/sample.js";
-import type { PublicState, Team, Tournament } from "../shared/types.js";
+import type { Match, PublicState, Source, Team, Tournament } from "../shared/types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -57,10 +57,31 @@ function writeStore(data: Tournament): void {
   fs.renameSync(tmp, DATA_PATH);
 }
 
+function sameSource(a: Source, b: Source): boolean {
+  if (a.kind !== b.kind) return false;
+  if (a.kind === "team" && b.kind === "team") return a.teamId === b.teamId;
+  if (a.kind === "winner" && b.kind === "winner") return a.matchId === b.matchId;
+  if (a.kind === "loser" && b.kind === "loser") return a.matchId === b.matchId;
+  return false;
+}
+
+function sameMatchup(a: Match, b: Match): boolean {
+  return a.kind === b.kind && sameSource(a.source1, b.source1) && sameSource(a.source2, b.source2);
+}
+
 function migrateBracket(data: Tournament): Tournament {
   if (data.version === BRACKET_VERSION) return data;
   if (data.teams.length >= 2) {
+    const previous = data.matches;
     const generated = generateMatches(data.teams, { shuffle: false });
+    for (const match of generated.matches) {
+      const prev = previous.find((old) => sameMatchup(old, match));
+      if (!prev) continue;
+      match.score1 = prev.score1;
+      match.score2 = prev.score2;
+      match.winnerId = prev.winnerId;
+      match.decidedBy = prev.decidedBy;
+    }
     data.teams = generated.teams;
     data.matches = generated.matches;
     data.settings.closingTime = generated.closingTime;

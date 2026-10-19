@@ -50,7 +50,9 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
         <div className="sheet-pair">
           <section>
             <h2>本戦</h2>
-            <p className="hint">不戦勝は1回戦だけに散らし、左右どちらのブロックも同じ回数だけ勝ち上がります。</p>
+            <p className="hint">
+              各コートは小さい山から始め、次の相手が決まっているあいだは連戦です。不戦勝は1回戦だけに散らします。
+            </p>
             <div className="sheet-scroll">
               <BracketBoard root={main} state={state} crown="優勝" onSelect={onSelect} />
             </div>

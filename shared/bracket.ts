@@ -15,7 +15,7 @@ import type {
 const FIRST_SLOT_MINUTES = parseMinutes("09:20");
 const GAP_MINUTES = 10;
 const COMFORTABLE_SLOTS = 8;
-export const BRACKET_VERSION = 3;
+export const BRACKET_VERSION = 4;
 const LOSER_MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
 
 type Built =
@@ -189,6 +189,27 @@ function byRound(matches: DraftMatch[]): DraftMatch[] {
   return [...matches].sort((a, b) => a.roundIndex - b.roundIndex || a.leafStart - b.leafStart);
 }
 
+function subtreeSize(node: Built): number {
+  return node.leafSpan;
+}
+
+function consecutiveIds(node: Built | null): string[] {
+  if (!node || node.type === "leaf") return [];
+  const leftSize = subtreeSize(node.child1);
+  const rightSize = subtreeSize(node.child2);
+  const first = rightSize < leftSize ? node.child2 : node.child1;
+  const second = first === node.child1 ? node.child2 : node.child1;
+  return [...consecutiveIds(first), ...consecutiveIds(second), node.id];
+}
+
+function consecutiveOrder(root: Built | null, drafts: DraftMatch[]): DraftMatch[] {
+  const byId = new Map(drafts.map((draft) => [draft.id, draft]));
+  return consecutiveIds(root).flatMap((id) => {
+    const draft = byId.get(id);
+    return draft ? [draft] : [];
+  });
+}
+
 function slotDuration(drafts: DraftMatch[], slot: number, slotOf: Map<string, number>): number {
   const inSlot = drafts.filter((m) => slotOf.get(m.id) === slot);
   if (inSlot.some((m) => m.kind === "grandFinal")) return 60;
@@ -310,8 +331,8 @@ export function generateMatches(
     }
   }
 
-  const aOrder = byRound(aDrafts);
-  const bOrder = byRound(bDrafts);
+  const aOrder = consecutiveOrder(sideA, aDrafts);
+  const bOrder = consecutiveOrder(sideB, bDrafts);
   const prelimSlots = Math.max(aOrder.length, bOrder.length, 0);
   const slotOf = new Map<string, number>();
   aOrder.forEach((match, index) => slotOf.set(match.id, index));
