@@ -28,7 +28,7 @@ export default function TournamentSheet({ state, onSelect, editable }: Props) {
       <p className="sheet-legend">
         <b>A会場</b>：{state.settings.venueAName}
         <b>B会場</b>：{state.settings.venueBName}
-        <span>黒地の名前が勝ち上がったチーム</span>
+        <span className="legend-advance">赤い線は勝ち上がったチーム</span>
         <span className="legend-ref">小さい「審」は審判</span>
       </p>
 

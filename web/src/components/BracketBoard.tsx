@@ -30,15 +30,18 @@ export default function BracketBoard({ root, state, crown, onSelect }: Props) {
   return (
     <div className="board" style={{ width, height }}>
       <svg width={width} height={lineH} aria-hidden="true">
-        {draw.lines.map((line, index) => (
+        {[...draw.lines]
+          .sort((a, b) => lineRank(a) - lineRank(b))
+          .map((line, index) => (
           <line
             key={index}
             x1={X(line.x1)}
             y1={Y(line.y1)}
             x2={X(line.x2)}
             y2={Y(line.y2)}
-            stroke={line.faded ? "#d5cfc4" : "#111"}
-            strokeWidth={line.live ? 3 : line.faded ? 1.5 : 2}
+            stroke={line.live ? "#c40000" : line.faded ? "#d5cfc4" : "#111"}
+            strokeWidth={line.live ? 3.5 : line.faded ? 1.5 : 2}
+            strokeLinecap="square"
           />
         ))}
       </svg>
@@ -166,6 +169,19 @@ function labelOf(node: TreeNode, state: PublicState): { name: string; sub: strin
   return { name: node.match.code, sub: "", mark: "" };
 }
 
+function lineRank(line: Line): number {
+  if (line.live) return 2;
+  if (line.faded) return 0;
+  return 1;
+}
+
+function stemStyle(child: TreeNode, won: boolean, decided: boolean): { live: boolean; faded: boolean } {
+  if (won) return { live: true, faded: false };
+  if (decided) return { live: false, faded: true };
+  if (child.kind === "match" && child.match.winnerId) return { live: true, faded: false };
+  return { live: false, faded: false };
+}
+
 function advancedTeamId(node: TreeNode): string | null {
   if (node.kind === "team") return node.teamId || null;
   if (node.kind === "loser") return loserTeam(node.match);
@@ -214,16 +230,12 @@ function layout(root: TreeNode): {
     const right = place(node.bottom, leaf + spanOf(node.top), depth + 1, fadedBranch || (decided && !bottomWon));
     const x = (left + right) / 2;
     const yOf = (child: TreeNode) => (child.kind === "match" ? depth + 1 : baseline);
-    lines.push({ x1: left, y1: yOf(node.top), x2: left, y2: depth, live: topWon, faded: decided && !topWon });
-    lines.push({
-      x1: right,
-      y1: yOf(node.bottom),
-      x2: right,
-      y2: depth,
-      live: bottomWon,
-      faded: decided && !bottomWon,
-    });
-    lines.push({ x1: left, y1: depth, x2: right, y2: depth, live: decided, faded: false });
+    const topStem = stemStyle(node.top, topWon, decided);
+    const bottomStem = stemStyle(node.bottom, bottomWon, decided);
+    lines.push({ x1: left, y1: yOf(node.top), x2: left, y2: depth, ...topStem });
+    lines.push({ x1: right, y1: yOf(node.bottom), x2: right, y2: depth, ...bottomStem });
+    lines.push({ x1: left, y1: depth, x2: x, y2: depth, live: topWon, faded: decided && !topWon });
+    lines.push({ x1: x, y1: depth, x2: right, y2: depth, live: bottomWon, faded: decided && !bottomWon });
     matches.push({ node, x, depth });
     return x;
   }

@@ -108,6 +108,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   margin: 0 0 10px;
 }
+.legend-advance { color: #c40000; font-weight: 700; }
 .legend-ref { color: #8d867c; font-weight: 400; }
 .sheet-now {
   background: var(--now);
