@@ -50,13 +50,12 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <Link to="/" className="brand">
-          <span className="brand-kicker">Lab Softball</span>
           <strong>{state.settings.title}</strong>
-          <em>{formatHeaderDate(state.settings.date)}</em>
+          <em>トーナメント表</em>
         </Link>
         <nav>
           <Link className={location.pathname === "/" ? "is-on" : ""} to="/">
-            トーナメント
+            表
           </Link>
           <Link className={location.pathname === "/rules" ? "is-on" : ""} to="/rules">
             ルール
@@ -77,10 +76,4 @@ export default function App() {
       </Routes>
     </div>
   );
-}
-
-function formatHeaderDate(isoDate: string): string {
-  const [y, m, d] = isoDate.split("-");
-  if (!y || !m || !d) return isoDate;
-  return `${y}.${m}.${d}`;
 }

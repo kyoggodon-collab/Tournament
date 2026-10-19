@@ -1,9 +1,9 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import type { Match, PublicState, Team } from "@shared/types";
 import { api } from "../api";
 import BracketView from "../components/BracketView";
 import MatchCard from "../components/MatchCard";
-import { sourceLabel, teamName } from "../format";
+import { teamName } from "../format";
 
 type Tab = "teams" | "games" | "settings";
 
@@ -17,7 +17,7 @@ export default function AdminPage({
   const [admin, setAdmin] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("teams");
+  const [tab, setTab] = useState<Tab>("games");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Match | null>(null);
 
@@ -75,7 +75,7 @@ export default function AdminPage({
       <div className="admin-head">
         <div>
           <p className="eyebrow">管理者</p>
-          <h1>運営デスク</h1>
+          <h1>トーナメント表の編集</h1>
         </div>
         <button
           type="button"
@@ -90,7 +90,7 @@ export default function AdminPage({
       <div className="tabs">
         {(["teams", "games", "settings"] as Tab[]).map((id) => (
           <button key={id} className={tab === id ? "is-on" : ""} type="button" onClick={() => setTab(id)}>
-            {id === "teams" ? "チーム" : id === "games" ? "試合・スコア" : "設定"}
+            {id === "teams" ? "チーム" : id === "games" ? "トーナメント表" : "設定"}
           </button>
         ))}
       </div>
@@ -98,12 +98,11 @@ export default function AdminPage({
         <TeamsPanel state={state} onChange={onChange} setTab={setTab} />
       ) : null}
       {tab === "games" ? (
-        <>
-          <GamesPanel state={state} onSelect={setSelected} />
-          {state.matches.length > 0 ? (
-            <BracketView state={state} onSelect={setSelected} />
-          ) : null}
-        </>
+        state.matches.length > 0 ? (
+          <BracketView state={state} onSelect={setSelected} />
+        ) : (
+          <p className="hint">先にチームタブで組み合わせを生成してください。</p>
+        )
       ) : null}
       {tab === "settings" ? <SettingsPanel state={state} onChange={onChange} /> : null}
       {selected ? (
@@ -238,62 +237,6 @@ function TeamsPanel({
         </button>
       </div>
       {message ? <p className="flash">{message}</p> : null}
-    </section>
-  );
-}
-
-function GamesPanel({
-  state,
-  onSelect,
-}: {
-  state: PublicState;
-  onSelect: (match: Match) => void;
-}) {
-  const rows = useMemo(
-    () => [...state.matches].sort((a, b) => a.slot - b.slot || a.venue.localeCompare(b.venue)),
-    [state.matches],
-  );
-  if (rows.length === 0) {
-    return <p className="hint">先にチームタブで組み合わせを生成してください。</p>;
-  }
-  return (
-    <section className="panel">
-      <p className="hint">カードまたは表を押すとスコアを記録できます。勝者が次の試合に自動で入ります。</p>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>試合</th>
-              <th>時刻</th>
-              <th>会場</th>
-              <th>対戦</th>
-              <th>スコア</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((match) => (
-              <tr key={match.id} onClick={() => onSelect(match)}>
-                <td>
-                  {match.code}
-                  <small>{match.roundLabel}</small>
-                </td>
-                <td>
-                  {match.startTime}–{match.endTime}
-                </td>
-                <td>{match.venue}</td>
-                <td>
-                  {match.team1Id ? teamName(state.teams, match.team1Id) : sourceLabel(match.source1, state)}
-                  {" vs "}
-                  {match.team2Id ? teamName(state.teams, match.team2Id) : sourceLabel(match.source2, state)}
-                </td>
-                <td>
-                  {match.score1 ?? "–"} / {match.score2 ?? "–"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </section>
   );
 }

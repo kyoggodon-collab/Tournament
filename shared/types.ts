@@ -44,6 +44,7 @@ export type Match = {
   decidedBy: DecidedBy;
   refereeSource: RefereeSource;
   refereeTeamId: string | null;
+  loserMark: string | null;
 };
 
 export type TournamentSettings = {

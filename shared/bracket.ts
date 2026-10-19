@@ -12,7 +12,6 @@ import type {
   Venue,
 } from "./types.js";
 
-const OPENING_MINUTES = parseMinutes("09:00");
 const FIRST_SLOT_MINUTES = parseMinutes("09:20");
 const GAP_MINUTES = 10;
 const COMFORTABLE_SLOTS = 8;
@@ -302,6 +301,19 @@ export function generateMatches(
   const slotTimes = buildSlotTimes(drafts, slotOf, slotCount);
   const refs = assignReferees(drafts, slotOf);
 
+  const MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
+  const orderedDrafts = [...drafts].sort(
+    (a, b) => (slotOf.get(a.id) ?? 0) - (slotOf.get(b.id) ?? 0) || a.venue.localeCompare(b.venue),
+  );
+  const markOf = new Map<string, string>();
+  let markIndex = 0;
+  for (const draft of orderedDrafts) {
+    if (draft.kind === "venue") {
+      markOf.set(draft.id, MARKS[markIndex] ?? String(markIndex + 1));
+      markIndex += 1;
+    }
+  }
+
   const matches: Match[] = drafts.map((draft) => {
     const slot = slotOf.get(draft.id) ?? 0;
     const time = slotTimes[slot] ?? { start: "09:20", end: "10:00" };
@@ -318,6 +330,7 @@ export function generateMatches(
       score2: null,
       winnerId: null,
       decidedBy: null,
+      loserMark: markOf.get(draft.id) ?? null,
     };
   });
 
@@ -420,6 +433,7 @@ export function resolveTournament(tournament: Tournament): Tournament {
       match.team2Id = resolveSourceTeamId(match.source2, matches);
       match.winnerId = impliedWinner(match);
       match.refereeTeamId = resolveRefereeTeamId(match.refereeSource, matches);
+      match.loserMark = match.loserMark ?? null;
     }
   }
   return { ...tournament, matches };
