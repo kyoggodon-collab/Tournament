@@ -5,14 +5,12 @@ export const SAMPLE_TEAMS: Omit<Team, "id">[] = [
   { name: "岩田", lab: "岩田研" },
   { name: "DOPA CLUB", lab: "芦沢研" },
   { name: "Big Rice Boul 2", lab: "佐々木研" },
-  { name: "船橋磁", lab: "" },
-  { name: "AIアンツ", lab: "塚本研" },
+  { name: "船橋磁AIアンツ", lab: "塚本研" },
   { name: "KBYD", lab: "今池研" },
   { name: "サエッキーズ", lab: "佐伯研" },
   { name: "芳浩", lab: "高橋研" },
   { name: "FUSE", lab: "布施研" },
   { name: "タッキー＆さんちゃん", lab: "瀧川＆三枝研" },
-  { name: "チーム12", lab: "" },
 ];
 
 export const RULE_SECTIONS = [

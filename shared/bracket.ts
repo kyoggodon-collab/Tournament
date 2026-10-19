@@ -15,16 +15,31 @@ import type {
 const FIRST_SLOT_MINUTES = parseMinutes("09:20");
 const GAP_MINUTES = 10;
 const COMFORTABLE_SLOTS = 8;
+export const BRACKET_VERSION = 2;
+const LOSER_MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
 
-type Node = { kind: "team"; teamId: string } | { kind: "winner"; matchId: string };
+type Built =
+  | { type: "leaf"; source: Source; leafStart: number; leafSpan: number }
+  | {
+      type: "match";
+      id: string;
+      venue: Venue;
+      kind: MatchKind;
+      roundIndex: number;
+      leafStart: number;
+      leafSpan: number;
+      child1: Built;
+      child2: Built;
+    };
 
 type DraftMatch = {
   id: string;
   venue: Venue;
   kind: MatchKind;
-  group: Venue | "finals";
+  group: Venue | "finals" | "consolation";
   roundIndex: number;
   roundLabel: string;
+  leafStart: number;
   innings: number;
   timeLimitMin: number;
   lastInningAtMin: number;
@@ -34,38 +49,19 @@ type DraftMatch = {
   team2Id: string | null;
 };
 
-function nodeToSource(node: Node): Source {
-  return node.kind === "team"
-    ? { kind: "team", teamId: node.teamId }
-    : { kind: "winner", matchId: node.matchId };
-}
-
-function sourceTeamId(source: Source): string | null {
-  return source.kind === "team" ? source.teamId : null;
-}
-
-function rulesFor(kind: MatchKind, isVenueFinal: boolean): {
+function rulesFor(kind: MatchKind): {
   innings: number;
   timeLimitMin: number;
   lastInningAtMin: number;
 } {
-  if (kind === "grandFinal") {
-    return { innings: 7, timeLimitMin: 60, lastInningAtMin: 55 };
-  }
-  if (kind === "thirdPlace") {
-    return { innings: 5, timeLimitMin: 40, lastInningAtMin: 35 };
-  }
-  if (isVenueFinal) {
-    return { innings: 5, timeLimitMin: 40, lastInningAtMin: 35 };
-  }
+  if (kind === "grandFinal") return { innings: 7, timeLimitMin: 60, lastInningAtMin: 55 };
+  if (kind === "thirdPlace") return { innings: 5, timeLimitMin: 40, lastInningAtMin: 35 };
+  if (kind === "consolation") return { innings: 3, timeLimitMin: 25, lastInningAtMin: 20 };
   return { innings: 3, timeLimitMin: 30, lastInningAtMin: 25 };
 }
 
-function roundLabelFor(distanceFromFinal: number, isVenueFinal: boolean): string {
-  if (isVenueFinal) return "会場決勝";
-  if (distanceFromFinal === 1) return "準決勝";
-  if (distanceFromFinal === 2) return "準々決勝";
-  return `${distanceFromFinal + 1}回戦`;
+function sourceTeamId(source: Source): string | null {
+  return source.kind === "team" ? source.teamId : null;
 }
 
 export function splitVenueGroups(teams: Team[]): { A: Team[]; B: Team[] } {
@@ -73,126 +69,109 @@ export function splitVenueGroups(teams: Team[]): { A: Team[]; B: Team[] } {
   return { A: teams.slice(0, aCount), B: teams.slice(aCount) };
 }
 
-function buildVenueDraft(teams: Team[], venue: Venue): {
-  matches: DraftMatch[];
-  champion: Node | null;
-  venueFinalId: string | null;
-} {
-  if (teams.length === 0) {
-    return { matches: [], champion: null, venueFinalId: null };
+function buildEntries(entries: Source[], idOf: () => string, venue: Venue): Built | null {
+  if (entries.length === 0) return null;
+  if (entries.length === 1) {
+    return { type: "leaf", source: entries[0], leafStart: 0, leafSpan: 1 };
   }
-  if (teams.length === 1) {
-    return {
-      matches: [],
-      champion: { kind: "team", teamId: teams[0].id },
-      venueFinalId: null,
-    };
+  let left: Source[];
+  let right: Source[];
+  if (entries.length % 2 === 1) {
+    const cut = entries.length === 3 ? 2 : entries.length - 3;
+    left = entries.slice(0, cut);
+    right = entries.slice(cut);
+  } else {
+    const mid = entries.length / 2;
+    left = entries.slice(0, mid);
+    right = entries.slice(mid);
   }
-
-  const drafts: DraftMatch[] = [];
-  let roundParticipants: Node[] = teams.map((t) => ({ kind: "team" as const, teamId: t.id }));
-  let roundIndex = 0;
-
-  while (roundParticipants.length > 1) {
-    const next: Node[] = [];
-    const roundNodes = [...roundParticipants];
-    if (roundNodes.length % 2 === 1) {
-      next.push(roundNodes[0]);
-      roundNodes.shift();
-    }
-    for (let i = 0; i < roundNodes.length; i += 2) {
-      const id = `m-${venue}-r${roundIndex}-${i / 2}`;
-      const source1 = nodeToSource(roundNodes[i]);
-      const source2 = nodeToSource(roundNodes[i + 1]);
-      drafts.push({
-        id,
-        venue,
-        kind: "venue",
-        group: venue,
-        roundIndex,
-        roundLabel: "",
-        ...rulesFor("venue", false),
-        source1,
-        source2,
-        team1Id: sourceTeamId(source1),
-        team2Id: sourceTeamId(source2),
-      });
-      next.push({ kind: "winner", matchId: id });
-    }
-    roundParticipants = next;
-    roundIndex += 1;
-  }
-
-  const maxRound = Math.max(...drafts.map((m) => m.roundIndex));
-  for (const match of drafts) {
-    const isVenueFinal = match.roundIndex === maxRound;
-    const distanceFromFinal = maxRound - match.roundIndex;
-    match.roundLabel = roundLabelFor(distanceFromFinal, isVenueFinal);
-    Object.assign(match, rulesFor("venue", isVenueFinal));
-  }
-
-  const venueFinalId = drafts.find((m) => m.roundIndex === maxRound)?.id ?? null;
-  const champion = roundParticipants[0] ?? null;
-  return { matches: drafts, champion, venueFinalId };
+  const child1 = buildEntries(left, idOf, venue);
+  const child2 = buildEntries(right, idOf, venue);
+  if (!child1 || !child2) return child1 ?? child2;
+  return {
+    type: "match",
+    id: idOf(),
+    venue,
+    kind: "venue",
+    roundIndex: 0,
+    leafStart: 0,
+    leafSpan: 1,
+    child1,
+    child2,
+  };
 }
 
-function scheduleDrafts(drafts: DraftMatch[]): {
-  slotOf: Map<string, number>;
-  slotCount: number;
-} {
-  const slotOf = new Map<string, number>();
-  const nextSlot: Record<Venue, number> = { A: 0, B: 0 };
-
-  const venueMatches = drafts
-    .filter((m) => m.kind === "venue")
-    .sort((a, b) => a.roundIndex - b.roundIndex || a.venue.localeCompare(b.venue) || a.id.localeCompare(b.id));
-
-  for (const match of venueMatches) {
-    const slot = nextSlot[match.venue];
-    slotOf.set(match.id, slot);
-    nextSlot[match.venue] = slot + 1;
+function measure(node: Built, leafStart: number): number {
+  node.leafStart = leafStart;
+  if (node.type === "leaf") {
+    node.leafSpan = 1;
+    return leafStart + 1;
   }
+  const mid = measure(node.child1, leafStart);
+  const end = measure(node.child2, mid);
+  node.leafSpan = end - leafStart;
+  node.roundIndex = Math.max(roundOf(node.child1), roundOf(node.child2)) + 1;
+  return end;
+}
 
-  const finalsSlot = Math.max(nextSlot.A, nextSlot.B, 0);
-  for (const match of drafts.filter((m) => m.kind !== "venue")) {
-    slotOf.set(match.id, finalsSlot);
-  }
+function roundOf(node: Built): number {
+  return node.type === "leaf" ? -1 : node.roundIndex;
+}
 
-  const slotCount = drafts.length === 0 ? 0 : Math.max(...slotOf.values()) + 1;
-  return { slotOf, slotCount };
+function championSource(node: Built | null): Source | null {
+  if (!node) return null;
+  if (node.type === "leaf") return node.source;
+  return { kind: "winner", matchId: node.id };
+}
+
+function flatten(node: Built | null, into: Built[]): void {
+  if (!node || node.type === "leaf") return;
+  flatten(node.child1, into);
+  flatten(node.child2, into);
+  into.push(node);
+}
+
+function toDraft(node: Built & { type: "match" }, label: string): DraftMatch {
+  const source1 = championSource(node.child1)!;
+  const source2 = championSource(node.child2)!;
+  return {
+    id: node.id,
+    venue: node.venue,
+    kind: node.kind,
+    group: node.venue,
+    roundIndex: node.roundIndex,
+    roundLabel: label,
+    leafStart: node.leafStart,
+    ...rulesFor(node.kind),
+    source1,
+    source2,
+    team1Id: sourceTeamId(source1),
+    team2Id: sourceTeamId(source2),
+  };
+}
+
+function byRound(matches: DraftMatch[]): DraftMatch[] {
+  return [...matches].sort((a, b) => a.roundIndex - b.roundIndex || a.leafStart - b.leafStart);
 }
 
 function slotDuration(drafts: DraftMatch[], slot: number, slotOf: Map<string, number>): number {
   const inSlot = drafts.filter((m) => slotOf.get(m.id) === slot);
   if (inSlot.some((m) => m.kind === "grandFinal")) return 60;
-  const longest = Math.max(40, ...inSlot.map((m) => m.timeLimitMin + 10));
-  return longest;
+  return 40;
 }
 
-function buildSlotTimes(
-  drafts: DraftMatch[],
-  slotOf: Map<string, number>,
-  slotCount: number,
-): { start: string; end: string }[] {
+function buildSlotTimes(slotOf: Map<string, number>, drafts: DraftMatch[], slotCount: number) {
   const slots: { start: string; end: string }[] = [];
   let cursor = FIRST_SLOT_MINUTES;
   for (let i = 0; i < slotCount; i++) {
     const duration = slotDuration(drafts, i, slotOf);
-    slots.push({
-      start: formatMinutes(cursor),
-      end: formatMinutes(cursor + duration),
-    });
+    slots.push({ start: formatMinutes(cursor), end: formatMinutes(cursor + duration) });
     cursor += duration + GAP_MINUTES;
   }
   return slots;
 }
 
-function loserPlaysInSlot(
-  matchId: string,
-  slot: number,
-  drafts: DraftMatch[],
-  slotOf: Map<string, number>,
-): boolean {
+function loserPlaysInSlot(matchId: string, slot: number, drafts: DraftMatch[], slotOf: Map<string, number>): boolean {
   return drafts.some(
     (m) =>
       slotOf.get(m.id) === slot &&
@@ -201,16 +180,12 @@ function loserPlaysInSlot(
   );
 }
 
-function assignReferees(
-  drafts: DraftMatch[],
-  slotOf: Map<string, number>,
-): Map<string, RefereeSource> {
+function assignReferees(drafts: DraftMatch[], slotOf: Map<string, number>): Map<string, RefereeSource> {
   const refs = new Map<string, RefereeSource>();
   for (const venue of ["A", "B"] as Venue[]) {
     const seq = drafts
       .filter((m) => m.venue === venue)
-      .sort((a, b) => (slotOf.get(a.id) ?? 0) - (slotOf.get(b.id) ?? 0) || a.id.localeCompare(b.id));
-
+      .sort((a, b) => (slotOf.get(a.id) ?? 0) - (slotOf.get(b.id) ?? 0) || a.leafStart - b.leafStart);
     const previous: DraftMatch[] = [];
     for (const match of seq) {
       const slot = slotOf.get(match.id) ?? 0;
@@ -228,6 +203,29 @@ function assignReferees(
   return refs;
 }
 
+function assignOpeningReferees(
+  drafts: DraftMatch[],
+  slotOf: Map<string, number>,
+  refs: Map<string, RefereeSource>,
+  groups: { A: Team[]; B: Team[] },
+): void {
+  for (const venue of ["A", "B"] as Venue[]) {
+    const group = groups[venue];
+    for (const match of drafts.filter((m) => m.venue === venue)) {
+      if (refs.get(match.id)?.kind !== "staff") continue;
+      const slot = slotOf.get(match.id);
+      const busy = new Set<string>();
+      for (const other of drafts) {
+        if (slotOf.get(other.id) !== slot) continue;
+        if (other.source1.kind === "team") busy.add(other.source1.teamId);
+        if (other.source2.kind === "team") busy.add(other.source2.teamId);
+      }
+      const free = group.find((team) => !busy.has(team.id));
+      if (free) refs.set(match.id, { kind: "team", teamId: free.id });
+    }
+  }
+}
+
 function shuffleTeams(teams: Team[]): Team[] {
   const copy = [...teams];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -241,89 +239,147 @@ export function generateMatches(
   teams: Team[],
   options: GenerateOptions = { shuffle: false },
 ): { matches: Match[]; warnings: string[]; closingTime: string; teams: Team[] } {
-  if (teams.length < 2) {
-    throw new Error("チームは2以上必要です");
-  }
-
+  if (teams.length < 2) throw new Error("チームは2以上必要です");
   const ordered = options.shuffle ? shuffleTeams(teams) : [...teams];
   const groups = splitVenueGroups(ordered);
   const warnings: string[] = [];
+  let seq = 0;
+  const nextId = (prefix: string) => () => `${prefix}-${seq++}`;
 
-  const a = buildVenueDraft(groups.A, "A");
-  const b = buildVenueDraft(groups.B, "B");
-  const drafts: DraftMatch[] = [...a.matches, ...b.matches];
+  const sideA = buildEntries(groups.A.map((t) => ({ kind: "team", teamId: t.id })), nextId("a"), "A");
+  const sideB = buildEntries(groups.B.map((t) => ({ kind: "team", teamId: t.id })), nextId("b"), "B");
+  if (sideA) measure(sideA, 0);
+  if (sideB) measure(sideB, 0);
 
-  if (a.champion && b.champion) {
-    drafts.push({
+  const aNodes: Built[] = [];
+  const bNodes: Built[] = [];
+  flatten(sideA, aNodes);
+  flatten(sideB, bNodes);
+  const aDrafts = (aNodes.filter((n) => n.type === "match") as Extract<Built, { type: "match" }>[]).map((n) =>
+    toDraft(n, "本戦"),
+  );
+  const bDrafts = (bNodes.filter((n) => n.type === "match") as Extract<Built, { type: "match" }>[]).map((n) =>
+    toDraft(n, "本戦"),
+  );
+  for (const list of [aDrafts, bDrafts]) {
+    if (list.length === 0) continue;
+    const top = Math.max(...list.map((m) => m.roundIndex));
+    for (const match of list) {
+      if (match.roundIndex === top) {
+        match.roundLabel = "会場決勝";
+        Object.assign(match, rulesFor("venue"));
+        match.innings = 5;
+        match.timeLimitMin = 40;
+        match.lastInningAtMin = 35;
+      }
+    }
+  }
+
+  const aOrder = byRound(aDrafts);
+  const bOrder = byRound(bDrafts);
+  const prelimSlots = Math.max(aOrder.length, bOrder.length, 0);
+  const slotOf = new Map<string, number>();
+  aOrder.forEach((match, index) => slotOf.set(match.id, index));
+  bOrder.forEach((match, index) => slotOf.set(match.id, index));
+
+  const seeds: DraftMatch[] = [];
+  for (let i = 0; i < prelimSlots; i++) {
+    if (aOrder[i]) seeds.push(aOrder[i]);
+    if (bOrder[i]) seeds.push(bOrder[i]);
+  }
+
+  const consolationRoot =
+    seeds.length >= 2
+      ? buildEntries(
+          seeds.map((match) => ({ kind: "loser" as const, matchId: match.id })),
+          nextId("c"),
+          "A",
+        )
+      : null;
+  if (consolationRoot) measure(consolationRoot, 0);
+  const cNodes: Built[] = [];
+  flatten(consolationRoot, cNodes);
+  const cMatches = cNodes.filter((n) => n.type === "match") as Extract<Built, { type: "match" }>[];
+  if (cMatches.length > 0) {
+    const root = cMatches[cMatches.length - 1];
+    root.kind = "thirdPlace";
+    for (const match of cMatches) {
+      if (match !== root) match.kind = "consolation";
+    }
+  }
+  const cDrafts = cMatches.map((n) => toDraft(n, n.kind === "thirdPlace" ? "3位決定戦" : "3位決定戦"));
+  const cPrelims = byRound(cDrafts.filter((m) => m.kind === "consolation"));
+  cPrelims.forEach((match, index) => {
+    match.venue = index % 2 === 0 ? "A" : "B";
+    match.group = "consolation";
+    slotOf.set(match.id, prelimSlots + Math.floor(index / 2));
+  });
+  const third = cDrafts.find((m) => m.kind === "thirdPlace");
+  const finalSlot = prelimSlots + Math.ceil(cPrelims.length / 2);
+
+  const drafts: DraftMatch[] = [...aDrafts, ...bDrafts, ...cDrafts];
+  const champA = championSource(sideA);
+  const champB = championSource(sideB);
+  if (champA && champB) {
+    const grand: DraftMatch = {
       id: "m-grand-final",
       venue: "A",
       kind: "grandFinal",
       group: "finals",
       roundIndex: 100,
       roundLabel: "優勝決定戦",
-      ...rulesFor("grandFinal", false),
-      source1: nodeToSource(a.champion),
-      source2: nodeToSource(b.champion),
-      team1Id: sourceTeamId(nodeToSource(a.champion)),
-      team2Id: sourceTeamId(nodeToSource(b.champion)),
-    });
+      leafStart: 0,
+      ...rulesFor("grandFinal"),
+      source1: champA,
+      source2: champB,
+      team1Id: sourceTeamId(champA),
+      team2Id: sourceTeamId(champB),
+    };
+    drafts.push(grand);
+    slotOf.set(grand.id, finalSlot);
+  }
+  if (third) {
+    third.venue = "B";
+    third.group = "finals";
+    slotOf.set(third.id, finalSlot);
   }
 
-  if (a.venueFinalId && b.venueFinalId) {
-    drafts.push({
-      id: "m-third-place",
-      venue: "B",
-      kind: "thirdPlace",
-      group: "finals",
-      roundIndex: 100,
-      roundLabel: "3位決定戦",
-      ...rulesFor("thirdPlace", false),
-      source1: { kind: "loser", matchId: a.venueFinalId },
-      source2: { kind: "loser", matchId: b.venueFinalId },
-      team1Id: null,
-      team2Id: null,
-    });
-  } else if (groups.A.length >= 2 && groups.B.length === 0) {
-    warnings.push("会場Bにチームが割り当てられなかったため、全試合を会場Aで行います。");
+  if (seeds.length === 1) {
+    warnings.push("敗退が1チームだけのため、3位決定戦の対戦はありません。");
   }
-
-  if (groups.B.length === 1 && groups.A.length >= 2) {
-    warnings.push("会場Bは1チームのため予選なし。A会場勝者との優勝決定戦のみ移動します。");
-  }
-
-  const { slotOf, slotCount } = scheduleDrafts(drafts);
+  const slotCount = drafts.length === 0 ? 0 : Math.max(...slotOf.values()) + 1;
   if (slotCount > COMFORTABLE_SLOTS) {
-    warnings.push(
-      `試合進行が${slotCount}枠になるため、従来の8枠日程より延長しています。開始時刻は管理画面で調整できます。`,
-    );
+    warnings.push(`試合枠が${slotCount}あります。紙の8枠より長くなります。終了時刻を確認してください。`);
   }
 
-  const slotTimes = buildSlotTimes(drafts, slotOf, slotCount);
   const refs = assignReferees(drafts, slotOf);
-
-  const MARKS = "イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰノオクヤマケフコエテアサキユメミシヱヒモセス";
-  const orderedDrafts = [...drafts].sort(
-    (a, b) => (slotOf.get(a.id) ?? 0) - (slotOf.get(b.id) ?? 0) || a.venue.localeCompare(b.venue),
-  );
+  assignOpeningReferees(drafts, slotOf, refs, groups);
+  const slotTimes = buildSlotTimes(slotOf, drafts, slotCount);
   const markOf = new Map<string, string>();
-  let markIndex = 0;
-  for (const draft of orderedDrafts) {
-    if (draft.kind === "venue") {
-      markOf.set(draft.id, MARKS[markIndex] ?? String(markIndex + 1));
-      markIndex += 1;
-    }
-  }
+  seeds.forEach((match, index) => markOf.set(match.id, LOSER_MARKS[index] ?? String(index + 1)));
 
   const matches: Match[] = drafts.map((draft) => {
     const slot = slotOf.get(draft.id) ?? 0;
     const time = slotTimes[slot] ?? { start: "09:20", end: "10:00" };
     const refereeSource = refs.get(draft.id) ?? { kind: "staff" as const };
     return {
-      ...draft,
+      id: draft.id,
+      venue: draft.venue,
+      kind: draft.kind,
+      group: draft.group === "consolation" ? draft.venue : draft.group,
+      roundIndex: draft.roundIndex,
+      roundLabel: draft.roundLabel,
+      source1: draft.source1,
+      source2: draft.source2,
+      team1Id: draft.team1Id,
+      team2Id: draft.team2Id,
       slot,
       code: matchCode(slot, draft.venue),
       startTime: time.start,
       endTime: time.end,
+      innings: draft.innings,
+      timeLimitMin: draft.timeLimitMin,
+      lastInningAtMin: draft.lastInningAtMin,
       refereeSource,
       refereeTeamId: refereeSource.kind === "team" ? refereeSource.teamId : null,
       score1: null,
@@ -335,10 +391,7 @@ export function generateMatches(
   });
 
   const lastEnd = slotTimes[slotTimes.length - 1]?.end;
-  const closingTime = lastEnd
-    ? formatMinutes(parseMinutes(lastEnd) + 20)
-    : "16:30";
-
+  const closingTime = lastEnd ? formatMinutes(parseMinutes(lastEnd) + 20) : "16:30";
   return { matches, warnings, closingTime, teams: ordered };
 }
 

@@ -10,7 +10,7 @@ export type RefereeSource =
   | { kind: "team"; teamId: string }
   | { kind: "loser"; matchId: string };
 
-export type MatchKind = "venue" | "grandFinal" | "thirdPlace";
+export type MatchKind = "venue" | "grandFinal" | "consolation" | "thirdPlace";
 
 export type DecidedBy = "score" | "janken" | "forfeit" | null;
 
@@ -61,6 +61,7 @@ export type TournamentSettings = {
 };
 
 export type Tournament = {
+  version: number;
   settings: TournamentSettings;
   teams: Team[];
   matches: Match[];

@@ -30,11 +30,16 @@ describe("generateMatches", () => {
       const hasGrand = groups.A.length >= 1 && groups.B.length >= 1 && n >= 2;
       assert.equal(matches.some((m) => m.kind === "grandFinal"), hasGrand);
 
-      const hasThird = groups.A.length >= 2 && groups.B.length >= 2;
+      const hasThird = n >= 4;
       assert.equal(matches.some((m) => m.kind === "thirdPlace"), hasThird);
+      const consolationGames = matches.filter((m) => m.kind === "consolation" || m.kind === "thirdPlace");
+      assert.equal(consolationGames.length, Math.max(0, n - 3));
 
       const championshipGames = venueGames.length + (hasGrand ? 1 : 0);
       assert.equal(championshipGames, n - 1);
+      const loserRefs = matches.flatMap((m) => [m.source1, m.source2]).filter((s) => s.kind === "loser");
+      assert.equal(loserRefs.length, n >= 4 ? venueGames.length : 0);
+      assert.equal(new Set(loserRefs.map((s) => (s.kind === "loser" ? s.matchId : ""))).size, loserRefs.length);
 
       for (const match of matches.filter((m) => m.kind === "venue")) {
         for (const teamId of possibleTeamsForMatch(match, matches)) {
@@ -60,11 +65,78 @@ describe("generateMatches", () => {
     });
   }
 
-  it("keeps 14 teams within a single-day 8-slot envelope", () => {
-    const { matches } = generateMatches(teamsOf(14), { shuffle: false });
+  it("keeps the 10-team sheet inside the printed 8 slots", () => {
+    const { matches } = generateMatches(teamsOf(10), { shuffle: false });
     const slots = new Set(matches.map((m) => m.slot));
-    assert.ok(slots.size <= 8, `used ${slots.size} slots`);
-    assert.equal(matches.length, 14);
+    assert.equal(slots.size, 8);
+    assert.equal(matches.filter((m) => m.kind === "venue").length, 8);
+    assert.equal(matches.filter((m) => m.kind === "consolation" || m.kind === "thirdPlace").length, 7);
+  });
+
+  it("reproduces the printed 10-team championship and full losers bracket", () => {
+    const teams = teamsOf(10);
+    const { matches } = generateMatches(teams, { shuffle: false });
+    const code = (mark: string) => matches.find((m) => m.code === mark)!;
+    const team = (source: Match["source1"]) => {
+      assert.equal(source.kind, "team");
+      if (source.kind !== "team") return "";
+      return source.teamId;
+    };
+    const loserOf = (source: Match["source1"]) => {
+      assert.equal(source.kind, "loser");
+      if (source.kind !== "loser") return "";
+      return source.matchId;
+    };
+    const winnerOf = (source: Match["source1"]) => {
+      assert.equal(source.kind, "winner");
+      if (source.kind !== "winner") return "";
+      return source.matchId;
+    };
+
+    assert.equal(team(code("①A").source1), teams[0].id);
+    assert.equal(team(code("①A").source2), teams[1].id);
+    assert.equal(team(code("②A").source1), teams[2].id);
+    assert.equal(team(code("②A").source2), teams[3].id);
+    assert.equal(winnerOf(code("③A").source1), code("②A").id);
+    assert.equal(team(code("③A").source2), teams[4].id);
+    assert.equal(winnerOf(code("④A").source1), code("①A").id);
+    assert.equal(winnerOf(code("④A").source2), code("③A").id);
+
+    assert.equal(team(code("①B").source1), teams[5].id);
+    assert.equal(team(code("①B").source2), teams[6].id);
+    assert.equal(team(code("②B").source1), teams[7].id);
+    assert.equal(team(code("②B").source2), teams[8].id);
+    assert.equal(winnerOf(code("③B").source1), code("②B").id);
+    assert.equal(team(code("③B").source2), teams[9].id);
+    assert.equal(winnerOf(code("④B").source1), code("①B").id);
+    assert.equal(winnerOf(code("④B").source2), code("③B").id);
+
+    assert.equal(winnerOf(code("⑧A").source1), code("④A").id);
+    assert.equal(winnerOf(code("⑧A").source2), code("④B").id);
+    assert.equal(code("⑧A").kind, "grandFinal");
+
+    assert.equal(loserOf(code("⑤A").source1), code("①A").id);
+    assert.equal(loserOf(code("⑤A").source2), code("①B").id);
+    assert.equal(loserOf(code("⑤B").source1), code("②A").id);
+    assert.equal(loserOf(code("⑤B").source2), code("②B").id);
+    assert.equal(loserOf(code("⑥A").source1), code("③A").id);
+    assert.equal(loserOf(code("⑥A").source2), code("③B").id);
+    assert.equal(loserOf(code("⑥B").source1), code("④A").id);
+    assert.equal(loserOf(code("⑥B").source2), code("④B").id);
+    assert.equal(winnerOf(code("⑦A").source1), code("⑤A").id);
+    assert.equal(winnerOf(code("⑦A").source2), code("⑤B").id);
+    assert.equal(winnerOf(code("⑦B").source1), code("⑥A").id);
+    assert.equal(winnerOf(code("⑦B").source2), code("⑥B").id);
+    assert.equal(winnerOf(code("⑧B").source1), code("⑦A").id);
+    assert.equal(winnerOf(code("⑧B").source2), code("⑦B").id);
+    assert.equal(code("⑧B").kind, "thirdPlace");
+    assert.equal(code("⑧B").venue, "B");
+
+    const marks = matches
+      .filter((m) => m.kind === "venue")
+      .sort((a, b) => a.slot - b.slot || a.venue.localeCompare(b.venue))
+      .map((m) => m.loserMark);
+    assert.deepEqual(marks, ["イ", "ロ", "ハ", "ニ", "ホ", "ヘ", "ト", "チ"]);
   });
 
   it("gives byes without creating extra games", () => {

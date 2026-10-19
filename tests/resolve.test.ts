@@ -13,6 +13,7 @@ function setup(n = 4): Tournament {
   const teams = createTeams(n);
   const { matches, teams: ordered } = generateMatches(teams, { shuffle: false });
   return {
+    version: 2,
     settings: {
       title: "test",
       date: "2026-10-13",

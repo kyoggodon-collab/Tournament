@@ -11,6 +11,7 @@ import {
   createTeams,
   currentSlot,
   defaultSettings,
+  BRACKET_VERSION,
   generateMatches,
   resolveTournament,
   standingsOf,
@@ -35,6 +36,7 @@ function emptyTournament(): Tournament {
   const settings = defaultSettings();
   settings.closingTime = generated.closingTime;
   return {
+    version: BRACKET_VERSION,
     settings,
     teams: generated.teams,
     matches: generated.matches,
@@ -55,7 +57,22 @@ function writeStore(data: Tournament): void {
   fs.renameSync(tmp, DATA_PATH);
 }
 
+function migrateBracket(data: Tournament): Tournament {
+  if (data.version === BRACKET_VERSION) return data;
+  if (data.teams.length >= 2) {
+    const generated = generateMatches(data.teams, { shuffle: false });
+    data.teams = generated.teams;
+    data.matches = generated.matches;
+    data.settings.closingTime = generated.closingTime;
+    data.generatedAt = new Date().toISOString();
+  }
+  data.version = BRACKET_VERSION;
+  writeStore(data);
+  return data;
+}
+
 async function ensureSecrets(data: Tournament): Promise<Tournament> {
+  data = migrateBracket(data);
   let changed = false;
   if (!data.settings.sessionSecret) {
     data.settings.sessionSecret = crypto.randomBytes(24).toString("hex");
