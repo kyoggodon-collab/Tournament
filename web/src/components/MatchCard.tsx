@@ -48,6 +48,7 @@ export default function MatchCard({ match, state, current, onSelect }: Props) {
           lab={t1?.lab ?? ""}
           score={match.score1}
           winner={Boolean(match.winnerId && match.winnerId === match.team1Id)}
+          lost={Boolean(match.winnerId && match.team1Id && match.winnerId !== match.team1Id)}
         />
         <div className="vs">VS</div>
         <Side
@@ -55,10 +56,11 @@ export default function MatchCard({ match, state, current, onSelect }: Props) {
           lab={t2?.lab ?? ""}
           score={match.score2}
           winner={Boolean(match.winnerId && match.winnerId === match.team2Id)}
+          lost={Boolean(match.winnerId && match.team2Id && match.winnerId !== match.team2Id)}
         />
       </div>
       <footer>
-        <span>審判 {refereeLabel(match, state)}</span>
+        <span className="ref-quiet">審判 {refereeLabel(match, state)}</span>
         <span>{coldNote(match)}</span>
         {decidedLabel(match) ? <b>{decidedLabel(match)}</b> : null}
       </footer>
@@ -71,14 +73,16 @@ function Side({
   lab,
   score,
   winner,
+  lost,
 }: {
   name: string;
   lab: string;
   score: number | null;
   winner: boolean;
+  lost: boolean;
 }) {
   return (
-    <div className={`side${winner ? " is-win" : ""}`}>
+    <div className={`side${winner ? " is-win" : lost ? " is-loss" : ""}`}>
       <strong>{name}</strong>
       {lab ? <small>{lab}</small> : <small>&nbsp;</small>}
       <em>{score === null ? "–" : score}</em>

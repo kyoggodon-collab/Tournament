@@ -108,7 +108,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   margin: 0 0 10px;
 }
-.ref-note { color: var(--ref); font-weight: 700; }
+.legend-ref { color: #8d867c; font-weight: 400; }
 .sheet-now {
   background: var(--now);
   border: 1px solid var(--line);
@@ -161,7 +161,7 @@ a { color: inherit; text-decoration: none; }
 }
 .b-tag {
   position: absolute;
-  transform: translate(-50%, -58%);
+  transform: translate(-50%, -22%);
   z-index: 2;
   width: auto;
   min-width: 0;
@@ -176,9 +176,27 @@ a { color: inherit; text-decoration: none; }
   box-shadow: none;
 }
 button.b-tag { cursor: pointer; }
-.b-tag b { display: block; font-size: 15px; }
-.b-tag small, .b-tag em, .b-tag strong { display: block; font-size: 11px; font-style: normal; }
-.b-tag .b-advance { font-size: 12px; }
+.b-tag b, .b-tag small, .b-tag em, .b-tag strong { display: block; font-style: normal; }
+.b-code { font-size: 13px; font-weight: 700; color: #222; }
+.b-score { margin-left: 6px; font-size: 13px; font-weight: 800; }
+.b-time, .b-note { color: #6f685f; font-size: 10px; font-weight: 400; }
+.b-winner {
+  margin: 3px auto 2px;
+  padding: 2px 7px 3px;
+  max-width: 132px;
+  background: #171717;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: normal;
+}
+.b-ref {
+  margin-top: 1px;
+  color: #b0a89c;
+  font-size: 10px;
+  font-weight: 400;
+}
 .b-leaf {
   position: absolute;
   writing-mode: vertical-rl;
@@ -190,9 +208,12 @@ button.b-tag { cursor: pointer; }
   justify-content: flex-start;
   gap: 2px;
   line-height: 1.15;
+  font-weight: 800;
 }
 .b-leaf i { font-style: normal; font-weight: 800; }
-.b-leaf small { color: var(--muted); }
+.b-leaf small { color: var(--muted); font-weight: 500; }
+.b-leaf.is-out { color: #b7b0a4; font-weight: 500; }
+.b-leaf.is-out small { color: #c8c1b6; }
 
 .warnings {
   margin: 0 0 12px;
@@ -312,8 +333,12 @@ tr.is-now, tbody tr:hover { background: var(--now); }
   margin: 8px 0;
 }
 .side { display: grid; }
-.side.is-win strong, .side.is-win em { color: var(--win); }
+.side.is-win strong { font-size: 18px; }
+.side.is-win em { color: #111; font-weight: 800; }
+.side.is-loss { color: #a39b90; }
+.side.is-loss em { color: #a39b90; font-weight: 500; }
 .side em { font-style: normal; font-size: 24px; }
+.ref-quiet { color: #8d867c; font-weight: 400; }
 
 .rules ul { padding-left: 18px; }
 .rules section {
@@ -344,3 +369,4 @@ button.b-tag {
   padding: 0 3px;
   box-shadow: none;
 }
+button.b-tag .b-winner { color: #fff; background: #171717; }

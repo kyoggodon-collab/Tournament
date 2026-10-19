@@ -3,9 +3,9 @@ import { decidedLabel, refereeLabel, teamById, teamName } from "../format";
 import type { TreeNode } from "../tree";
 
 const LEAF = 86;
-const LEVEL = 78;
+const LEVEL = 112;
 const PAD_X = 8;
-const PAD_TOP = 54;
+const PAD_TOP = 42;
 const NAME_H = 210;
 
 type Props = {
@@ -15,9 +15,9 @@ type Props = {
   onSelect?: (match: Match) => void;
 };
 
-type LeafSpot = { node: TreeNode; x: number };
+type LeafSpot = { node: TreeNode; x: number; faded: boolean };
 type MatchSpot = { node: Extract<TreeNode, { kind: "match" }>; x: number; depth: number };
-type Line = { x1: number; y1: number; x2: number; y2: number };
+type Line = { x1: number; y1: number; x2: number; y2: number; live: boolean; faded: boolean };
 
 export default function BracketBoard({ root, state, crown, onSelect }: Props) {
   const draw = layout(root);
@@ -37,8 +37,8 @@ export default function BracketBoard({ root, state, crown, onSelect }: Props) {
             y1={Y(line.y1)}
             x2={X(line.x2)}
             y2={Y(line.y2)}
-            stroke="#111"
-            strokeWidth="2"
+            stroke={line.faded ? "#d5cfc4" : "#111"}
+            strokeWidth={line.live ? 3 : line.faded ? 1.5 : 2}
           />
         ))}
       </svg>
@@ -88,14 +88,16 @@ function MatchTag({
   const note = decidedLabel(match);
   const body = (
     <>
-      <b>{match.code}</b>
-      <small>
+      <b className="b-code">
+        {match.code}
+        {score ? <span className="b-score">{score}</span> : null}
+      </b>
+      {winner ? <strong className="b-winner">{winner.name}</strong> : null}
+      {note ? <small className="b-note">{note}</small> : null}
+      <small className="b-time">
         {match.startTime}-{match.endTime}
       </small>
-      <em className="ref-note">{shortReferee(match, state)}</em>
-      {score ? <strong>{score}</strong> : null}
-      {winner ? <strong className="b-advance">{winner.name}</strong> : null}
-      {note ? <small>{note}</small> : null}
+      <em className="b-ref">審 {shortReferee(match, state)}</em>
     </>
   );
   if (!onSelect) {
@@ -125,7 +127,7 @@ function LeafTag({
 }) {
   const text = labelOf(leaf.node, state);
   return (
-    <div className="b-leaf" style={{ left, top }}>
+    <div className={`b-leaf${leaf.faded ? " is-out" : ""}`} style={{ left, top }}>
       {text.mark ? <i>{text.mark}</i> : null}
       <strong>{text.name}</strong>
       {text.sub ? <small>{text.sub}</small> : null}
@@ -164,6 +166,12 @@ function labelOf(node: TreeNode, state: PublicState): { name: string; sub: strin
   return { name: node.match.code, sub: "", mark: "" };
 }
 
+function advancedTeamId(node: TreeNode): string | null {
+  if (node.kind === "team") return node.teamId || null;
+  if (node.kind === "loser") return loserTeam(node.match);
+  return node.match.winnerId;
+}
+
 function loserTeam(match: Match): string | null {
   if (!match.winnerId || !match.team1Id || !match.team2Id) return null;
   return match.winnerId === match.team1Id ? match.team2Id : match.team1Id;
@@ -192,23 +200,34 @@ function layout(root: TreeNode): {
   const lines: Line[] = [];
   const baseline = matchDepth(root) + 1;
 
-  function place(node: TreeNode, leaf: number, depth: number): number {
+  function place(node: TreeNode, leaf: number, depth: number, fadedBranch: boolean): number {
     if (node.kind !== "match") {
       const x = leaf + 0.5;
-      leaves.push({ node, x });
+      leaves.push({ node, x, faded: fadedBranch });
       return x;
     }
-    const left = place(node.top, leaf, depth + 1);
-    const right = place(node.bottom, leaf + spanOf(node.top), depth + 1);
+    const winnerId = node.match.winnerId;
+    const topWon = Boolean(winnerId && advancedTeamId(node.top) === winnerId);
+    const bottomWon = Boolean(winnerId && advancedTeamId(node.bottom) === winnerId);
+    const decided = Boolean(winnerId);
+    const left = place(node.top, leaf, depth + 1, fadedBranch || (decided && !topWon));
+    const right = place(node.bottom, leaf + spanOf(node.top), depth + 1, fadedBranch || (decided && !bottomWon));
     const x = (left + right) / 2;
     const yOf = (child: TreeNode) => (child.kind === "match" ? depth + 1 : baseline);
-    lines.push({ x1: left, y1: yOf(node.top), x2: left, y2: depth });
-    lines.push({ x1: right, y1: yOf(node.bottom), x2: right, y2: depth });
-    lines.push({ x1: left, y1: depth, x2: right, y2: depth });
+    lines.push({ x1: left, y1: yOf(node.top), x2: left, y2: depth, live: topWon, faded: decided && !topWon });
+    lines.push({
+      x1: right,
+      y1: yOf(node.bottom),
+      x2: right,
+      y2: depth,
+      live: bottomWon,
+      faded: decided && !bottomWon,
+    });
+    lines.push({ x1: left, y1: depth, x2: right, y2: depth, live: decided, faded: false });
     matches.push({ node, x, depth });
     return x;
   }
 
-  const rootX = place(root, 0, 0);
+  const rootX = place(root, 0, 0, false);
   return { leaves, matches, lines, leafCount: spanOf(root), baseline, rootX };
 }
